@@ -1,5 +1,5 @@
 import { createApiClient } from "../api";
-import type { Project, CreateProjectPayload, PaginatedResponse } from "../types";
+import type { Project, CreateProjectPayload } from "../types";
 
 function parseApiList<T>(payload: unknown): T[] {
   if (Array.isArray(payload)) {
@@ -7,7 +7,7 @@ function parseApiList<T>(payload: unknown): T[] {
   }
 
   if (typeof payload === "object" && payload !== null && "data" in payload) {
-    return (payload as any).data as T[];
+    return (payload as { data: T[] }).data;
   }
 
   return [];

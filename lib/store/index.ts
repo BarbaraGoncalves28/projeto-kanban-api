@@ -1,19 +1,27 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { User, Project, Task } from "../types";
+import type { User, Project, Task, CreateTaskPayload } from "../types";
 
-// Helper to get token from cookie (client-side only)
-const getTokenFromCookie = () => {
-  if (typeof window === "undefined") return null;
-  const cookie = document.cookie
-    .split("; ")
-    .find((item) => item.startsWith("kanban_token="));
-  return cookie?.split("=")[1] || null;
-};
+function getErrorMessage(error: unknown, fallback: string) {
+  if (typeof error === "object" && error !== null) {
+    const message = "message" in error ? error.message : undefined;
+    if (typeof message === "string" && message.trim()) {
+      return message;
+    }
+  }
+
+  if (error instanceof Error && error.message.trim()) {
+    return error.message;
+  }
+
+  return fallback;
+}
 
 interface AuthState {
   user: User | null;
   token: string | null;
+  hasHydrated: boolean;
+  setHasHydrated: (value: boolean) => void;
   setUser: (user: User | null) => void;
   setToken: (token: string | null) => void;
   logout: () => void;
@@ -21,7 +29,13 @@ interface AuthState {
 
 interface ProjectsState {
   projects: Project[];
+  projectsLoading: boolean;
+  projectsError: string | null;
   setProjects: (projects: Project[]) => void;
+  setProjectsLoading: (loading: boolean) => void;
+  setProjectsError: (error: string | null) => void;
+  fetchProjects: () => Promise<void>;
+  createProject: (projectData: import("../types").CreateProjectPayload) => Promise<Project>;
   addProject: (project: Project) => void;
   updateProject: (id: number, updates: Partial<Project>) => void;
   removeProject: (id: number) => void;
@@ -29,7 +43,14 @@ interface ProjectsState {
 
 interface TasksState {
   tasks: Task[];
+  tasksLoading: boolean;
+  tasksError: string | null;
   setTasks: (tasks: Task[]) => void;
+  setTasksLoading: (loading: boolean) => void;
+  setTasksError: (error: string | null) => void;
+  fetchTasks: (projectId?: number) => Promise<void>;
+  updateTaskStatus: (taskId: number, status: Task["status"], projectId?: number) => Promise<void>;
+  createTask: (taskData: CreateTaskPayload) => Promise<Task>;
   addTask: (task: Task) => void;
   updateTask: (id: number, updates: Partial<Task>) => void;
   removeTask: (id: number) => void;
@@ -43,7 +64,9 @@ export const useStore = create<AppState>()(
     (set, get) => ({
       // Auth state
       user: null,
-      token: getTokenFromCookie(), // Initialize from cookie
+      token: null,
+      hasHydrated: false,
+      setHasHydrated: (value) => set({ hasHydrated: value }),
       setUser: (user) => set({ user }),
       setToken: (token) => {
         set({ token });
@@ -73,12 +96,25 @@ export const useStore = create<AppState>()(
           const { projectService } = await import("@/lib/services");
           const projects = await projectService.getProjects();
           set({ projects, projectsLoading: false });
-        } catch (error: any) {
-          set({ projectsError: error?.message ?? "Failed to load projects", projectsLoading: false });
+        } catch (error: unknown) {
+          const message = error instanceof Error ? error.message : "Failed to load projects";
+          set({ projectsError: message, projectsLoading: false });
+        }
+      },
+      createProject: async (projectData) => {
+        try {
+          const { projectService } = await import("@/lib/services");
+          const newProject = await projectService.createProject(projectData);
+          set((state) => ({
+            projects: [newProject, ...state.projects.filter((project) => project.id !== newProject.id)],
+          }));
+          return newProject;
+        } catch (error) {
+          throw error;
         }
       },
       addProject: (project) => set((state) => ({
-        projects: [...state.projects, project]
+        projects: [project, ...state.projects.filter((item) => item.id !== project.id)]
       })),
       updateProject: (id, updates) => set((state) => ({
         projects: state.projects.map(p => p.id === id ? { ...p, ...updates } : p)
@@ -94,33 +130,48 @@ export const useStore = create<AppState>()(
       setTasks: (tasks) => set({ tasks }),
       setTasksLoading: (loading) => set({ tasksLoading: loading }),
       setTasksError: (error) => set({ tasksError: error }),
-      fetchTasks: async () => {
+      fetchTasks: async (projectId?: number) => {
         set({ tasksLoading: true, tasksError: null });
         try {
           const { taskService } = await import("@/lib/services");
-          const tasks = await taskService.getTasks();
+          const tasks = projectId ? await taskService.getTasks(projectId) : [];
           set({ tasks, tasksLoading: false });
-        } catch (error: any) {
-          set({ tasksError: error?.message ?? "Failed to load tasks", tasksLoading: false });
+        } catch (error: unknown) {
+          const message = error instanceof Error ? error.message : "Failed to load tasks";
+          set({ tasksError: message, tasksLoading: false });
         }
       },
-      updateTaskStatus: async (taskId: number, status: Task["status"]) => {
+      updateTaskStatus: async (taskId: number, status: Task["status"], projectIdArg?: number) => {
         try {
           const { taskService } = await import("@/lib/services");
-          await taskService.updateTask(taskId, { status });
+          const task = get().tasks.find((item) => item.id === taskId);
+          const projectId = projectIdArg ?? task?.project_id ?? task?.projectId;
+
+          if (!projectId) {
+            throw new Error("Project is required to update task status");
+          }
+
+          await taskService.updateTaskStatus(taskId, projectId, status);
           // Optimistically update local state
           set((state) => ({
             tasks: state.tasks.map(task =>
               task.id === taskId ? { ...task, status } : task
             )
           }));
-        } catch (error: any) {
+        } catch (error: unknown) {
           // Revert optimistic update on error
-          await get().fetchTasks();
-          throw error;
+          const task = get().tasks.find((item) => item.id === taskId);
+          const projectId = projectIdArg ?? task?.project_id ?? task?.projectId;
+          await get().fetchTasks(projectId);
+          set({
+            tasksError: getErrorMessage(
+              error,
+              "Nao foi possivel atualizar o status da tarefa agora."
+            ),
+          });
         }
       },
-      createTask: async (taskData: Omit<Task, "id" | "created_at" | "updated_at">) => {
+      createTask: async (taskData: CreateTaskPayload) => {
         try {
           const { taskService } = await import("@/lib/services");
           const newTask = await taskService.createTask(taskData);
@@ -129,7 +180,7 @@ export const useStore = create<AppState>()(
             tasks: [...state.tasks, newTask]
           }));
           return newTask;
-        } catch (error: any) {
+        } catch (error: unknown) {
           throw error;
         }
       },
@@ -149,6 +200,9 @@ export const useStore = create<AppState>()(
     {
       name: "kanban-store",
       partialize: (state) => ({ token: state.token }), // Only persist token
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true);
+      },
     }
   )
 );
@@ -156,6 +210,7 @@ export const useStore = create<AppState>()(
 // Selector hooks for better performance
 export const useUser = () => useStore((state) => state.user);
 export const useToken = () => useStore((state) => state.token);
+export const useHasHydrated = () => useStore((state) => state.hasHydrated);
 export const useProjects = () => useStore((state) => state.projects);
 export const useTasks = () => useStore((state) => state.tasks);
 

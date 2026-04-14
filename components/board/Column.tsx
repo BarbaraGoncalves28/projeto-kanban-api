@@ -12,7 +12,6 @@ type ColumnProps = {
 };
 
 const columnVariants = {
-  backlog: "border-muted bg-muted/30 hover:bg-muted/50",
   pendente: "border-blue-200 bg-blue-50/50 hover:bg-blue-50/70 dark:border-blue-800 dark:bg-blue-950/20 dark:hover:bg-blue-950/30",
   em_progresso: "border-yellow-200 bg-yellow-50/50 hover:bg-yellow-50/70 dark:border-yellow-800 dark:bg-yellow-950/20 dark:hover:bg-yellow-950/30",
   revisao: "border-purple-200 bg-purple-50/50 hover:bg-purple-50/70 dark:border-purple-800 dark:bg-purple-950/20 dark:hover:bg-purple-950/30",
@@ -20,7 +19,6 @@ const columnVariants = {
 };
 
 const headerVariants = {
-  backlog: "text-muted-foreground",
   pendente: "text-blue-700 dark:text-blue-300",
   em_progresso: "text-yellow-700 dark:text-yellow-300",
   revisao: "text-purple-700 dark:text-purple-300",

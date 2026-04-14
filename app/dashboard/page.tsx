@@ -10,15 +10,15 @@ import { Skeleton } from "@/components/ui/Skeleton";
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { token } = useStore();
+  const { token, hasHydrated } = useStore();
 
   useEffect(() => {
-    if (!token) {
+    if (hasHydrated && !token) {
       router.push("/login");
     }
-  }, [token, router]);
+  }, [hasHydrated, token, router]);
 
-  if (!token) {
+  if (!hasHydrated || !token) {
     return (
       <div className="min-h-screen bg-background px-4 py-10">
         <div className="mx-auto w-full max-w-5xl">

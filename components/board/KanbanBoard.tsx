@@ -1,18 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { DndContext, DragEndEvent, DragOverEvent, DragStartEvent } from "@dnd-kit/core";
-import { arrayMove } from "@dnd-kit/sortable";
 import { useStore } from "@/lib/store";
 import { Column } from "./Column";
 import { CreateTaskModal } from "./CreateTaskModal";
 import { TaskDetailModal } from "./TaskDetailModal";
 import { Button } from "@/components/ui/Button";
-import { Plus } from "lucide-react";
+import { FolderKanban, Plus } from "lucide-react";
 import type { Task, TaskStatus } from "@/lib/types";
 
 const columns: { id: TaskStatus; title: string }[] = [
-  { id: "backlog", title: "Backlog" },
   { id: "pendente", title: "Pendente" },
   { id: "em_progresso", title: "Em Progresso" },
   { id: "revisao", title: "Revisão" },
@@ -20,37 +19,46 @@ const columns: { id: TaskStatus; title: string }[] = [
 ];
 
 export function KanbanBoard() {
+  const searchParams = useSearchParams();
   const { tasks, tasksLoading, tasksError, fetchTasks, updateTaskStatus } = useStore();
-  const [activeId, setActiveId] = useState<number | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const projectIdParam = searchParams.get("project");
+  const parsedProjectId = projectIdParam ? Number(projectIdParam) : undefined;
+  const selectedProjectId =
+    parsedProjectId && Number.isInteger(parsedProjectId) && parsedProjectId > 0
+      ? parsedProjectId
+      : undefined;
+  const hasSelectedProject = selectedProjectId !== undefined;
 
   useEffect(() => {
-    fetchTasks();
-  }, [fetchTasks]);
+    if (!hasSelectedProject) {
+      void fetchTasks(undefined);
+      return;
+    }
+
+    void fetchTasks(selectedProjectId);
+  }, [fetchTasks, hasSelectedProject, selectedProjectId]);
 
   function getTasksByStatus(status: TaskStatus) {
     return tasks.filter(task => task.status === status);
   }
 
   function handleDragStart(event: DragStartEvent) {
-    setActiveId(event.active.id as number);
+    void event;
   }
 
   function handleDragOver(event: DragOverEvent) {
-    const { active, over } = event;
+    const { over } = event;
 
     if (!over) return;
 
-    const activeId = active.id as number;
     const overId = over.id as TaskStatus | number;
 
     // If dropping on a column
     if (typeof overId === "string") {
-      const newStatus = overId as TaskStatus;
-      // Visual feedback - temporarily update status
-      // The store will handle the actual update on drag end
+      // Visual feedback can be added here later if needed.
     }
   }
 
@@ -58,7 +66,6 @@ export function KanbanBoard() {
     const { active, over } = event;
 
     if (!over) {
-      setActiveId(null);
       return;
     }
 
@@ -77,13 +84,8 @@ export function KanbanBoard() {
       newStatus = overTask.status;
     }
 
-    try {
-      await updateTaskStatus(activeId, newStatus);
-    } catch (error) {
-      console.error("Failed to update task status:", error);
-    }
+    await updateTaskStatus(activeId, newStatus, selectedProjectId);
 
-    setActiveId(null);
   }
 
   const handleTaskClick = (task: Task) => {
@@ -104,9 +106,25 @@ export function KanbanBoard() {
       <div className="flex items-center justify-center min-h-96">
         <div className="text-center">
           <p className="text-destructive mb-4">{tasksError}</p>
-          <Button onClick={() => fetchTasks()}>
+          <Button onClick={() => hasSelectedProject && fetchTasks(selectedProjectId)}>
             Try Again
           </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!hasSelectedProject) {
+    return (
+      <div className="flex min-h-96 items-center justify-center">
+        <div className="max-w-md rounded-3xl border bg-card p-8 text-center shadow-sm">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+            <FolderKanban className="h-7 w-7" />
+          </div>
+          <h2 className="mt-5 text-2xl font-semibold">Selecione um projeto</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Abra o board a partir de um card de projeto para carregar as tarefas pela rota correta da API.
+          </p>
         </div>
       </div>
     );
@@ -131,7 +149,7 @@ export function KanbanBoard() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 overflow-x-auto pb-4 md:grid-cols-3 lg:grid-cols-5">
+      <div className="grid grid-cols-1 gap-6 overflow-x-auto pb-4 md:grid-cols-2 xl:grid-cols-4">
         {columns.map((column) => (
           <Column
             key={column.id}
@@ -146,7 +164,7 @@ export function KanbanBoard() {
       <CreateTaskModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
-        onTaskCreated={fetchTasks}
+        onTaskCreated={() => fetchTasks(selectedProjectId)}
       />
 
       <TaskDetailModal

@@ -8,7 +8,7 @@ import { projectService, tagService } from "@/lib/services";
 import { useStore } from "@/lib/store";
 import { Button } from "@/components/ui/Button";
 import { TextField } from "@/components/ui/TextField";
-import type { Project, Tag, TaskPriority } from "@/lib/types";
+import type { Project, Tag } from "@/lib/types";
 
 const createTaskSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -75,9 +75,14 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated }: CreateTaskMo
     setIsLoading(true);
     try {
       await createTask({
-        ...data,
-        status: "backlog",
-        assignedUsers: [],
+        title: data.title,
+        description: data.description,
+        status: "pendente",
+        priority: data.priority,
+        due_date: data.dueDate,
+        project_id: data.projectId,
+        assigned_users: [],
+        tags: data.tags,
       });
       reset();
       onTaskCreated();

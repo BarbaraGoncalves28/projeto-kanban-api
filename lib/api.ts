@@ -1,4 +1,4 @@
-import axios, { AxiosError, AxiosInstance } from "axios";
+import axios, { AxiosHeaders, AxiosInstance } from "axios";
 import { getBrowserToken } from "@/lib/auth";
 import type { AuthResponse, LoginPayload, RegisterPayload, Project, Tag } from "./types";
 
@@ -10,7 +10,7 @@ function parseApiList<T>(payload: unknown): T[] {
   }
 
   if (typeof payload === "object" && payload !== null && "data" in payload) {
-    return (payload as any).data as T[];
+    return (payload as { data: T[] }).data;
   }
 
   return [];
@@ -26,13 +26,13 @@ function createInstance(token?: string): AxiosInstance {
 
   instance.interceptors.request.use((config) => {
     if (!config.headers) {
-      config.headers = {};
+      config.headers = new AxiosHeaders();
     }
 
     const authToken = token ?? getBrowserToken();
 
     if (authToken) {
-      config.headers.Authorization = `Bearer ${authToken}`;
+      config.headers.set("Authorization", `Bearer ${authToken}`);
     }
 
     return config;
@@ -43,9 +43,25 @@ function createInstance(token?: string): AxiosInstance {
     (error) => {
       if (axios.isAxiosError(error)) {
         const status = error.response?.status;
+        const url = error.config?.url;
+        const isMissingTasksEndpoint = status === 404 && url === "/tasks";
+        const isTaskStatusValidationError =
+          status === 422 &&
+          error.config?.method?.toLowerCase() === "patch" &&
+          typeof url === "string" &&
+          /\/projects\/\d+\/tasks\/\d+$/.test(url);
+
+        if (!isMissingTasksEndpoint && !isTaskStatusValidationError) {
+          console.error(`[API] Request failed: ${error.config?.method?.toUpperCase()} ${url} - Status: ${status}`);
+        }
 
         // Global error handling
         if (status === 401) {
+          console.error("[API] 401 Unauthorized - clearing token and redirecting to login");
+          // Clear token from cookie
+          if (typeof window !== "undefined") {
+            document.cookie = "kanban_token=; path=/; max-age=0; samesite=strict";
+          }
           // If client-side, redirect to login
           if (typeof window !== "undefined") {
             window.location.href = "/login";

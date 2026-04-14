@@ -7,6 +7,8 @@ type ProjectCardProps = {
 };
 
 export function ProjectCard({ project }: ProjectCardProps) {
+  const createdAt = project.created_at ?? project.createdAt;
+
   return (
     <Link
       href={`/board?project=${project.id}`}
@@ -26,7 +28,9 @@ export function ProjectCard({ project }: ProjectCardProps) {
       <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
         <div className="flex items-center gap-1">
           <Calendar className="h-3 w-3" />
-          <span>Created {new Date(project.created_at).toLocaleDateString()}</span>
+          <span>
+            Created {createdAt ? new Date(createdAt).toLocaleDateString() : "recently"}
+          </span>
         </div>
         <div className="flex items-center gap-1">
           <Users className="h-3 w-3" />

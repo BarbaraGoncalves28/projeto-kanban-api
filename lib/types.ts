@@ -17,7 +17,7 @@ export interface AuthResponse {
 }
 
 // Kanban System Types
-export type TaskStatus = "backlog" | "pendente" | "em_progresso" | "revisao" | "concluido";
+export type TaskStatus = "pendente" | "em_progresso" | "revisao" | "concluido";
 
 export type TaskPriority = "baixa" | "media" | "alta" | "urgente";
 
@@ -26,18 +26,23 @@ export interface User {
   name: string;
   email: string;
   avatar?: string;
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface Project {
   id: number;
   name: string;
   description?: string;
-  ownerId: number;
+  ownerId?: number;
+  owner_id?: number;
   owner?: User;
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface Tag {
@@ -45,8 +50,11 @@ export interface Tag {
   name: string;
   color?: string;
   projectId?: number;
-  createdAt: string;
-  updatedAt: string;
+  project_id?: number;
+  createdAt?: string;
+  updatedAt?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface Task {
@@ -56,17 +64,25 @@ export interface Task {
   status: TaskStatus;
   priority: TaskPriority;
   estimatedTime?: number; // in minutes
+  estimated_time?: number; // in minutes
   dueDate?: string; // ISO date string
-  projectId: number;
+  due_date?: string; // ISO date string
+  projectId?: number;
+  project_id?: number;
   project?: Project;
-  creatorId: number;
+  creatorId?: number;
+  creator_id?: number;
   creator?: User;
-  assignedUsers: number[]; // array of user IDs
+  assignedUsers?: number[]; // array of user IDs
+  assigned_users?: number[]; // array of user IDs
   assignees?: User[]; // populated users
   tags: number[]; // array of tag IDs
   taskTags?: Tag[]; // populated tags
-  createdAt: string;
-  updatedAt: string;
+  task_tags?: Tag[]; // populated tags
+  createdAt?: string;
+  updatedAt?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 // API Response types
@@ -90,9 +106,13 @@ export interface CreateTaskPayload {
   status: TaskStatus;
   priority: TaskPriority;
   estimatedTime?: number;
+  estimated_time?: number;
   dueDate?: string;
-  projectId: number;
-  assignedUsers: number[];
+  due_date?: string;
+  projectId?: number;
+  project_id?: number;
+  assignedUsers?: number[];
+  assigned_users?: number[];
   tags: number[];
 }
 
@@ -105,11 +125,21 @@ export interface CreateProjectPayload {
   description?: string;
 }
 
+export interface CreateTagPayload {
+  name: string;
+  color?: string;
+  project_id?: number;
+  projectId?: number;
+}
+
 export interface Comment {
   id: number;
-  userId: number;
+  userId?: number;
+  user_id?: number;
   user?: User;
   message: string;
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
+  created_at?: string;
+  updated_at?: string;
 }

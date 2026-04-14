@@ -2,8 +2,8 @@ import { cookies } from "next/headers";
 
 const AUTH_COOKIE_NAME = "kanban_token";
 
-export function getAuthTokenFromServerCookie() {
-  const cookieStore = cookies();
+export async function getAuthTokenFromServerCookie() {
+  const cookieStore = await cookies();
   return cookieStore.get(AUTH_COOKIE_NAME)?.value;
 }
 
@@ -12,7 +12,7 @@ export function buildAuthCookie(token: string) {
     name: AUTH_COOKIE_NAME,
     value: token,
     options: {
-      httpOnly: true,
+      httpOnly: false, // Allow client-side access for axios interceptor
       path: "/",
       maxAge: 60 * 60 * 24 * 30,
       sameSite: "strict" as const,

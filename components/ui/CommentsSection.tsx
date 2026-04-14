@@ -10,7 +10,7 @@ type CommentsSectionProps = {
   currentUser?: User;
 };
 
-export function CommentsSection({ comments, onAddComment, currentUser }: CommentsSectionProps) {
+export function CommentsSection({ comments, onAddComment }: CommentsSectionProps) {
   const [newComment, setNewComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -38,19 +38,24 @@ export function CommentsSection({ comments, onAddComment, currentUser }: Comment
         {comments.length === 0 ? (
           <p className="text-sm text-slate-500 italic">No comments yet.</p>
         ) : (
-          comments.map((comment) => (
-            <div key={comment.id} className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+          comments.map((comment) => {
+            const authorId = comment.userId ?? comment.user_id;
+            const createdAt = comment.createdAt ?? comment.created_at;
+
+            return (
+              <div key={comment.id} className="rounded-lg border border-slate-200 bg-slate-50 p-3">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-slate-900">
-                  {comment.user?.name || `User ${comment.userId}`}
+                  {comment.user?.name || `User ${authorId ?? "unknown"}`}
                 </span>
                 <span className="text-xs text-slate-500">
-                  {new Date(comment.createdAt).toLocaleString()}
+                  {createdAt ? new Date(createdAt).toLocaleString() : "Agora"}
                 </span>
               </div>
               <p className="text-sm text-slate-700">{comment.message}</p>
-            </div>
-          ))
+              </div>
+            );
+          })
         )}
       </div>
 

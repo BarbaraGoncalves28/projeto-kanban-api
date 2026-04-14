@@ -1,27 +1,47 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useStore } from "@/lib/store";
+import { CreateProjectModal } from "@/components/projects/CreateProjectModal";
 import { ProjectCard } from "@/components/ui/ProjectCard";
 import { Button } from "@/components/ui/Button";
 import { SkeletonCard } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { FolderPlus, RefreshCw } from "lucide-react";
+import { CheckCircle2, FolderPlus, RefreshCw } from "lucide-react";
+import type { Project } from "@/lib/types";
 
 export function ProjectsSection() {
   const { projects, projectsLoading, projectsError, fetchProjects } = useStore();
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   useEffect(() => {
     fetchProjects();
   }, [fetchProjects]);
 
+  useEffect(() => {
+    if (!successMessage) {
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      setSuccessMessage(null);
+    }, 4000);
+
+    return () => window.clearTimeout(timeout);
+  }, [successMessage]);
+
   function handleCreateProject() {
-    // TODO: Implement create project modal/form
-    alert("Create project functionality not implemented yet");
+    setIsCreateModalOpen(true);
+  }
+
+  function handleProjectCreated(project: Project) {
+    setSuccessMessage(`Projeto "${project.name}" criado com sucesso.`);
   }
 
   if (projectsLoading) {
     return (
+      <>
       <section className="rounded-3xl border bg-card p-8 shadow-sm">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold">Projects</h2>
@@ -35,11 +55,18 @@ export function ProjectsSection() {
           ))}
         </div>
       </section>
+      <CreateProjectModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onProjectCreated={handleProjectCreated}
+      />
+      </>
     );
   }
 
   if (projectsError) {
     return (
+      <>
       <section className="rounded-3xl border bg-card p-8 shadow-sm">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold">Projects</h2>
@@ -60,39 +87,60 @@ export function ProjectsSection() {
           />
         </div>
       </section>
+      <CreateProjectModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onProjectCreated={handleProjectCreated}
+      />
+      </>
     );
   }
 
   return (
-    <section className="rounded-3xl border bg-card p-8 shadow-sm">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Projects</h2>
-        <Button onClick={handleCreateProject}>
-          <FolderPlus className="mr-2 h-4 w-4" />
-          Create Project
-        </Button>
-      </div>
+    <>
+      <section className="rounded-3xl border bg-card p-8 shadow-sm">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold">Projects</h2>
+          <Button onClick={handleCreateProject}>
+            <FolderPlus className="mr-2 h-4 w-4" />
+            Create Project
+          </Button>
+        </div>
 
-      {projects.length === 0 ? (
-        <div className="mt-6">
-          <EmptyState
-            title="No projects yet"
-            description="Create your first project to start organizing your tasks and collaborating with your team."
-            icon={<FolderPlus className="h-6 w-6" />}
-            action={
-              <Button onClick={handleCreateProject}>
-                Create Your First Project
-              </Button>
-            }
-          />
-        </div>
-      ) : (
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {projects.map((project) => (
-            <ProjectCard key={project.id} project={project} />
-          ))}
-        </div>
-      )}
-    </section>
+        {successMessage ? (
+          <div className="mt-6 flex items-center gap-3 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-700">
+            <CheckCircle2 className="h-4 w-4" />
+            <span>{successMessage}</span>
+          </div>
+        ) : null}
+
+        {projects.length === 0 ? (
+          <div className="mt-6">
+            <EmptyState
+              title="No projects yet"
+              description="Create your first project to start organizing your tasks and collaborating with your team."
+              icon={<FolderPlus className="h-6 w-6" />}
+              action={
+                <Button onClick={handleCreateProject}>
+                  Create Your First Project
+                </Button>
+              }
+            />
+          </div>
+        ) : (
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {projects.map((project) => (
+              <ProjectCard key={project.id} project={project} />
+            ))}
+          </div>
+        )}
+      </section>
+
+      <CreateProjectModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onProjectCreated={handleProjectCreated}
+      />
+    </>
   );
 }
