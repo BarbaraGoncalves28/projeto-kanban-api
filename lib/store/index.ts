@@ -158,12 +158,19 @@ export const useStore = create<AppState>()(
 
           const projects = get().projects
 
-          const fullTasks = tasks.map((task) => ({
-            ...task,
-            project: projects.find(
-              (p) => p.id === (task.project_id ?? task.projectId),
-            ),
-          }))
+          const fullTasks = tasks.map((task) => {
+            const resolvedProjectId =
+              task.project_id ?? task.projectId ?? task.project?.id ?? projectId
+
+            return {
+              ...task,
+              project_id: resolvedProjectId,
+              projectId: resolvedProjectId,
+              project:
+                task.project ??
+                projects.find((p) => p.id === resolvedProjectId),
+            }
+          })
 
           set({ tasks: fullTasks, tasksLoading: false })
         } catch (error: unknown) {

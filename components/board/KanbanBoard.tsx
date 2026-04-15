@@ -98,6 +98,11 @@ export function KanbanBoard() {
     setIsDetailModalOpen(true)
   }
 
+  const handleCloseTaskDetail = () => {
+    setIsDetailModalOpen(false)
+    setSelectedTask(null)
+  }
+
   if (tasksLoading) {
     return (
       <div className="flex items-center justify-center min-h-96">
@@ -178,7 +183,7 @@ export function KanbanBoard() {
       <TaskDetailModal
         task={selectedTask}
         isOpen={isDetailModalOpen}
-        onClose={() => setIsDetailModalOpen(false)}
+        onClose={handleCloseTaskDetail}
         currentUser={{
           id: 1,
           name: 'Current User',

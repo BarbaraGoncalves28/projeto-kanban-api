@@ -60,9 +60,14 @@ function normalizeTaskStatusFromApi(
 }
 
 function normalizeTaskFromApi(task: Task): Task {
+  const resolvedProjectId =
+    task.project_id ?? task.projectId ?? task.project?.id
+
   return {
     ...task,
     status: normalizeTaskStatusFromApi(task.status),
+    project_id: resolvedProjectId,
+    projectId: resolvedProjectId,
   }
 }
 

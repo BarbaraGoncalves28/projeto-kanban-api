@@ -28,7 +28,7 @@ export function TaskDetailModal({
 
   void currentUser
   const dueDate = task?.due_date ?? task?.dueDate
-  const projectId = task?.project_id ?? task?.projectId
+  const projectId = task?.project_id ?? task?.projectId ?? task?.project?.id
   const storeProjectName = projects.find(
     (project) => project.id === projectId,
   )?.name
@@ -38,6 +38,24 @@ export function TaskDetailModal({
     (projectId ? `Project ${projectId}` : 'No project')
   const taskTags = task?.task_tags ?? task?.taskTags
 
+  useEffect(() => {
+    if (!isOpen || !task) {
+      setIsEditing(false)
+      setFormData({})
+      return
+    }
+
+    setIsEditing(false)
+    setFormData({
+      title: task.title,
+      description: task.description,
+      status: task.status,
+      priority: task.priority,
+      due_date: task.due_date ?? task.dueDate,
+      project_id: task.project_id ?? task.projectId ?? task.project?.id,
+    })
+  }, [isOpen, task])
+
   function handleStartEdit() {
     if (!task) return
 
@@ -46,8 +64,8 @@ export function TaskDetailModal({
       description: task.description,
       status: task.status,
       priority: task.priority,
-      due_date: task.due_date,
-      project_id: task.project_id ?? task.projectId,
+      due_date: task.due_date ?? task.dueDate,
+      project_id: task.project_id ?? task.projectId ?? task.project?.id,
     })
 
     setIsEditing(true)
@@ -99,7 +117,7 @@ export function TaskDetailModal({
       await taskService.updateTask({
         id: task.id,
         ...formData,
-        projectId: Number(formData.project_id),
+        projectId: Number(formData.project_id ?? projectId),
       })
       setIsEditing(false)
       onClose() // pode trocar por refetch futuramente
