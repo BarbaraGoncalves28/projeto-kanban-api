@@ -4,11 +4,11 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { projectService, tagService } from "@/lib/services";
+import { projectService, tagService, userService } from "@/lib/services";
 import { useStore } from "@/lib/store";
 import { Button } from "@/components/ui/Button";
 import { TextField } from "@/components/ui/TextField";
-import type { Project, Tag } from "@/lib/types";
+import type { Project, Tag, User } from "@/lib/types";
 
 const createTaskSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -17,6 +17,7 @@ const createTaskSchema = z.object({
   priority: z.enum(["baixa", "media", "alta", "urgente"]),
   dueDate: z.string().optional(),
   tags: z.array(z.number()).default([]),
+  assignedUsers: z.array(z.number()).default([]),
 });
 
 type CreateTaskForm = z.infer<typeof createTaskSchema>;
@@ -28,11 +29,12 @@ type CreateTaskModalProps = {
 };
 
 export function CreateTaskModal({ isOpen, onClose, onTaskCreated }: CreateTaskModalProps) {
-  const { createTask } = useStore();
+  const { createTask, user } = useStore();
   const [projects, setProjects] = useState<Project[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(true);
+  const [users, setUsers] = useState<User[]>([]);
 
   const {
     register,
@@ -46,6 +48,7 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated }: CreateTaskMo
     defaultValues: {
       priority: "media",
       tags: [],
+      assignedUsers: [],
     },
   });
 
@@ -55,10 +58,12 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated }: CreateTaskMo
     if (isOpen) {
       const fetchData = async () => {
         try {
-          const [projectsData, tagsData] = await Promise.all([
+          const [projectsData, tagsData, usersData] = await Promise.all([
             projectService.getProjects(),
             tagService.getTags(),
+            userService.getUsers(),
           ]);
+          setUsers(usersData);
           setProjects(projectsData);
           setTags(tagsData);
         } catch (error) {
@@ -72,16 +77,29 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated }: CreateTaskMo
   }, [isOpen]);
 
   const onSubmit = async (data: CreateTaskForm) => {
+    if (!user) {
+  console.error("User not authenticated");
+  return;
+}
+
     setIsLoading(true);
     try {
+      const project = projects.find(p => p.id === data.projectId);
+
+      const now = new Date().toISOString();
+
       await createTask({
         title: data.title,
         description: data.description,
         status: "pendente",
         priority: data.priority,
         due_date: data.dueDate,
+        created_at: now,
         project_id: data.projectId,
-        assigned_users: [],
+        project: project,
+        creator_id: user.id,
+        creator: user,
+        assigned_users: data.assignedUsers,
         tags: data.tags,
       });
       reset();
@@ -133,7 +151,7 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated }: CreateTaskMo
                     {...register("projectId", { valueAsNumber: true })}
                     className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-200"
                   >
-                    <option value="">Select a project</option>
+                    <option value={0}>Select a project</option>
                     {projects.map((project) => (
                       <option key={project.id} value={project.id}>
                         {project.name}
@@ -211,6 +229,32 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated }: CreateTaskMo
                   ))}
                 </div>
               </div>
+
+              <div>
+  <label className="block text-sm font-medium text-slate-700 mb-3">
+    Assigned Users
+  </label>
+
+  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+    {users.map((user) => (
+      <label key={user.id} className="flex items-center space-x-2 cursor-pointer">
+        <input
+          type="checkbox"
+          checked={watch("assignedUsers")?.includes(user.id) || false}
+          onChange={() => {
+            const current = watch("assignedUsers") || [];
+            const updated = current.includes(user.id)
+              ? current.filter(id => id !== user.id)
+              : [...current, user.id];
+
+            setValue("assignedUsers", updated);
+          }}
+        />
+        <span className="text-sm">{user.name}</span>
+      </label>
+    ))}
+  </div>
+</div>
 
               <div className="flex justify-end gap-4 pt-4">
                 <button

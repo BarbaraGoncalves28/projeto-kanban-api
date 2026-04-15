@@ -135,7 +135,15 @@ export const useStore = create<AppState>()(
         try {
           const { taskService } = await import("@/lib/services");
           const tasks = projectId ? await taskService.getTasks(projectId) : [];
-          set({ tasks, tasksLoading: false });
+
+              const projects = get().projects;
+
+              const fullTasks = tasks.map(task => ({
+      ...task,
+      project: projects.find(p => p.id === (task.project_id ?? task.projectId))
+    }));
+
+          set({ tasks: fullTasks, tasksLoading: false });
         } catch (error: unknown) {
           const message = error instanceof Error ? error.message : "Failed to load tasks";
           set({ tasksError: message, tasksLoading: false });
@@ -176,10 +184,15 @@ export const useStore = create<AppState>()(
           const { taskService } = await import("@/lib/services");
           const newTask = await taskService.createTask(taskData);
           // Add to local state
+          const fullTask = {
+            ...newTask,
+            project: taskData.project
+          };
+
           set((state) => ({
-            tasks: [...state.tasks, newTask]
+            tasks: [...state.tasks, fullTask]
           }));
-          return newTask;
+          return fullTask;
         } catch (error: unknown) {
           throw error;
         }

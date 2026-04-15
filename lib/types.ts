@@ -111,6 +111,11 @@ export interface CreateTaskPayload {
   due_date?: string;
   projectId?: number;
   project_id?: number;
+  project?: Project;
+  created_at?: string;
+
+  creator_id?: number;
+  creator?: User;
   assignedUsers?: number[];
   assigned_users?: number[];
   tags: number[];
