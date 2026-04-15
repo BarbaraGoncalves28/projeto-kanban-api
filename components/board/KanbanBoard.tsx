@@ -1,104 +1,109 @@
-"use client";
+'use client'
 
-import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
-import { DndContext, DragEndEvent, DragOverEvent, DragStartEvent } from "@dnd-kit/core";
-import { useStore } from "@/lib/store";
-import { Column } from "./Column";
-import { CreateTaskModal } from "./CreateTaskModal";
-import { TaskDetailModal } from "./TaskDetailModal";
-import { Button } from "@/components/ui/Button";
-import { FolderKanban, Plus } from "lucide-react";
-import type { Task, TaskStatus } from "@/lib/types";
+import { Button } from '@/components/ui/Button'
+import { useStore } from '@/lib/store'
+import type { Task, TaskStatus } from '@/lib/types'
+import {
+  DndContext,
+  DragEndEvent,
+  DragOverEvent,
+  DragStartEvent,
+} from '@dnd-kit/core'
+import { FolderKanban, Plus } from 'lucide-react'
+import { useSearchParams } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { Column } from './Column'
+import { CreateTaskModal } from './CreateTaskModal'
+import { TaskDetailModal } from './TaskDetailModal'
 
 const columns: { id: TaskStatus; title: string }[] = [
-  { id: "pendente", title: "Pendente" },
-  { id: "em_progresso", title: "Em Progresso" },
-  { id: "revisao", title: "Revisão" },
-  { id: "concluido", title: "Concluído" },
-];
+  { id: 'pendente', title: 'Pendente' },
+  { id: 'em_progresso', title: 'Em Progresso' },
+  { id: 'revisao', title: 'Revisão' },
+  { id: 'concluido', title: 'Concluído' },
+]
 
 export function KanbanBoard() {
-  const searchParams = useSearchParams();
-  const { tasks, tasksLoading, tasksError, fetchTasks, updateTaskStatus } = useStore();
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  const projectIdParam = searchParams.get("project");
-  const parsedProjectId = projectIdParam ? Number(projectIdParam) : undefined;
+  const searchParams = useSearchParams()
+  const { tasks, tasksLoading, tasksError, fetchTasks, updateTaskStatus } =
+    useStore()
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null)
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
+  const projectIdParam = searchParams.get('project')
+  const parsedProjectId = projectIdParam ? Number(projectIdParam) : undefined
   const selectedProjectId =
     parsedProjectId && Number.isInteger(parsedProjectId) && parsedProjectId > 0
       ? parsedProjectId
-      : undefined;
-  const hasSelectedProject = selectedProjectId !== undefined;
+      : undefined
+  const hasSelectedProject = selectedProjectId !== undefined
 
   useEffect(() => {
     if (!hasSelectedProject) {
-      void fetchTasks(undefined);
-      return;
+      void fetchTasks(undefined)
+      return
     }
 
-    void fetchTasks(selectedProjectId);
-  }, [fetchTasks, hasSelectedProject, selectedProjectId]);
+    void fetchTasks(selectedProjectId)
+  }, [fetchTasks, hasSelectedProject, selectedProjectId])
 
   function getTasksByStatus(status: TaskStatus) {
-    return tasks.filter(task => task.status === status);
+    return tasks.filter((task) => task.status === status)
   }
 
   function handleDragStart(event: DragStartEvent) {
-    void event;
+    void event
   }
 
   function handleDragOver(event: DragOverEvent) {
-    const { over } = event;
+    const { over } = event
 
-    if (!over) return;
+    if (!over) return
 
-    const overId = over.id as TaskStatus | number;
+    const overId = over.id as TaskStatus | number
 
     // If dropping on a column
-    if (typeof overId === "string") {
+    if (typeof overId === 'string') {
       // Visual feedback can be added here later if needed.
     }
   }
 
   async function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event;
+    const { active, over } = event
 
     if (!over) {
-      return;
+      return
     }
 
-    const activeId = active.id as number;
-    const overId = over.id as TaskStatus | number;
+    const activeId = active.id as number
+    const overId = over.id as TaskStatus | number
 
-    let newStatus: TaskStatus;
+    let newStatus: TaskStatus
 
-    if (typeof overId === "string") {
+    if (typeof overId === 'string') {
       // Dropped on a column
-      newStatus = overId as TaskStatus;
+      newStatus = overId as TaskStatus
     } else {
       // Dropped on another task - use that task's status
-      const overTask = tasks.find(t => t.id === overId);
-      if (!overTask) return;
-      newStatus = overTask.status;
+      const overTask = tasks.find((t) => t.id === overId)
+      if (!overTask) return
+      newStatus = overTask.status
     }
 
-    await updateTaskStatus(activeId, newStatus, selectedProjectId);
-
+    await updateTaskStatus(activeId, newStatus, selectedProjectId)
   }
 
   const handleTaskClick = (task: Task) => {
-    setSelectedTask(task);
-    setIsDetailModalOpen(true);
-  };
+    setSelectedTask(task)
+    setIsDetailModalOpen(true)
+  }
 
   if (tasksLoading) {
     return (
       <div className="flex items-center justify-center min-h-96">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
-    );
+    )
   }
 
   if (tasksError) {
@@ -106,12 +111,14 @@ export function KanbanBoard() {
       <div className="flex items-center justify-center min-h-96">
         <div className="text-center">
           <p className="text-destructive mb-4">{tasksError}</p>
-          <Button onClick={() => hasSelectedProject && fetchTasks(selectedProjectId)}>
+          <Button
+            onClick={() => hasSelectedProject && fetchTasks(selectedProjectId)}
+          >
             Try Again
           </Button>
         </div>
       </div>
-    );
+    )
   }
 
   if (!hasSelectedProject) {
@@ -123,11 +130,12 @@ export function KanbanBoard() {
           </div>
           <h2 className="mt-5 text-2xl font-semibold">Selecione um projeto</h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            Abra o board a partir de um card de projeto para carregar as tarefas pela rota correta da API.
+            Abra o board a partir de um card de projeto para carregar as tarefas
+            pela rota correta da API.
           </p>
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -171,8 +179,14 @@ export function KanbanBoard() {
         task={selectedTask}
         isOpen={isDetailModalOpen}
         onClose={() => setIsDetailModalOpen(false)}
-        currentUser={{ id: 1, name: "Current User", email: "user@example.com", createdAt: "", updatedAt: "" }}
+        currentUser={{
+          id: 1,
+          name: 'Current User',
+          email: 'user@example.com',
+          createdAt: '',
+          updatedAt: '',
+        }}
       />
     </DndContext>
-  );
+  )
 }
