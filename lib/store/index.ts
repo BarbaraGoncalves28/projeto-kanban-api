@@ -133,26 +133,26 @@ export const useStore = create<AppState>()(
           ],
         })),
       updateProject: (id, updates) => {
-  let updated: Project | undefined
+        let updated: Project | undefined
 
-  set((state) => {
-    const projects = state.projects.map((p) => {
-      if (p.id === id) {
-        updated = { ...p, ...updates }
+        set((state) => {
+          const projects = state.projects.map((p) => {
+            if (p.id === id) {
+              updated = { ...p, ...updates }
+              return updated
+            }
+            return p
+          })
+
+          return { projects }
+        })
+
+        if (!updated) {
+          throw new Error('Project not found')
+        }
+
         return updated
-      }
-      return p
-    })
-
-    return { projects }
-  })
-
-  if (!updated) {
-  throw new Error('Project not found')
-}
-
-return updated
-},
+      },
       removeProject: (id) =>
         set((state) => ({
           projects: state.projects.filter((p) => p.id !== id),
@@ -232,16 +232,11 @@ return updated
         try {
           const { taskService } = await import('@/lib/services')
           const newTask = await taskService.createTask(taskData)
-          // Add to local state
-          const fullTask = {
-            ...newTask,
-            project: taskData.project,
-          }
 
           set((state) => ({
-            tasks: [...state.tasks, fullTask],
+            tasks: [...state.tasks, newTask],
           }))
-          return fullTask
+          return newTask
         } catch (error: unknown) {
           throw error
         }

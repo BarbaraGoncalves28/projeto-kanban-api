@@ -58,31 +58,21 @@ export interface Tag {
 }
 
 export interface Task {
-  id: number;
-  title: string;
-  description?: string;
-  status: TaskStatus;
-  priority: TaskPriority;
-  estimatedTime?: number; // in minutes
-  estimated_time?: number; // in minutes
-  dueDate?: string; // ISO date string
-  due_date?: string; // ISO date string
-  projectId?: number;
-  project_id?: number;
-  project?: Project;
-  creatorId?: number;
-  creator_id?: number;
-  creator?: User;
-  assignedUsers?: number[]; // array of user IDs
-  assigned_users?: number[]; // array of user IDs
-  assignees?: User[]; // populated users
-  tags: number[]; // array of tag IDs
-  taskTags?: Tag[]; // populated tags
-  task_tags?: Tag[]; // populated tags
-  createdAt?: string;
-  updatedAt?: string;
-  created_at?: string;
-  updated_at?: string;
+  id: number
+  title: string
+  description?: string
+  status: TaskStatus
+  priority: TaskPriority
+  estimated_minutes?: number // in minutes
+  due_date?: string // ISO date string
+  project_id?: number
+  project?: Project
+  creator_id?: number
+  creator?: User
+  assignees?: User[] // populated users
+  tags: Tag[] // array of tag objects
+  created_at?: string
+  updated_at?: string
 }
 
 // API Response types
@@ -101,24 +91,15 @@ export interface PaginatedResponse<T> {
 
 // Form types
 export interface CreateTaskPayload {
-  title: string;
-  description?: string;
-  status: TaskStatus;
-  priority: TaskPriority;
-  estimatedTime?: number;
-  estimated_time?: number;
-  dueDate?: string;
-  due_date?: string;
-  projectId?: number;
-  project_id?: number;
-  project?: Project;
-  created_at?: string;
-
-  creator_id?: number;
-  creator?: User;
-  assignedUsers?: number[];
-  assigned_users?: number[];
-  tags: number[];
+  title: string
+  description?: string
+  status: TaskStatus
+  priority: TaskPriority
+  estimated_minutes?: number
+  due_date?: string
+  project_id: number
+  assignees?: number[]
+  tags: number[]
 }
 
 export interface UpdateTaskPayload extends Partial<CreateTaskPayload> {

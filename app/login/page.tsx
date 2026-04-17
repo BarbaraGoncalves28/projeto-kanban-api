@@ -13,7 +13,7 @@ import { useStore } from "@/lib/store";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { setToken } = useStore();
+  const { setToken, setUser } = useStore();
   const [serverError, setServerError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const {
@@ -44,6 +44,7 @@ export default function LoginPage() {
 
       // Update store with token
       setToken(data.token);
+      setUser(data.user);
 
       router.push("/dashboard");
     } catch (error) {

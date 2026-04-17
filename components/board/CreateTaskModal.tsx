@@ -80,31 +80,18 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated }: CreateTaskMo
   }, [isOpen]);
 
   const onSubmit = async (data: CreateTaskForm) => {
-    if (!user) {
-  console.error("User not authenticated");
-  return;
-}
-
     setIsLoading(true);
     try {
-      const project = projects.find(p => p.id === data.projectId);
-
       await createTask({
         title: data.title,
         description: data.description,
-        status: "pendente",
+        status: 'pendente',
         priority: data.priority,
         due_date: data.dueDate,
-        created_at: data.createdAt
-        ? new Date(data.createdAt).toISOString()
-        : new Date().toISOString(),
         project_id: data.projectId,
-        project: project,
-        creator_id: user.id,
-        creator: user,
-        assigned_users: data.assignedUsers,
+        assignees: data.assignedUsers,
         tags: data.tags,
-      });
+      })
       reset();
       onTaskCreated();
       onClose();
@@ -278,7 +265,7 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated }: CreateTaskMo
         );
       })}
     </div>
-  )}  
+  )}
 
 
 

@@ -60,14 +60,12 @@ function normalizeTaskStatusFromApi(
 }
 
 function normalizeTaskFromApi(task: Task): Task {
-  const resolvedProjectId =
-    task.project_id ?? task.projectId ?? task.project?.id
+  const resolvedProjectId = task.project_id
 
   return {
     ...task,
     status: normalizeTaskStatusFromApi(task.status),
     project_id: resolvedProjectId,
-    projectId: resolvedProjectId,
   }
 }
 
@@ -102,7 +100,7 @@ async function populateTaskTags(
       return {
         ...normalizedTask,
         taskTags: normalizedTask.tags
-          .map((id) => tagMap.get(id))
+          .map((tag) => tagMap.get(tag.id))
           .filter(Boolean) as Tag[],
       }
     })
@@ -112,11 +110,8 @@ async function populateTaskTags(
   }
 }
 
-function getTaskProjectId(payload: {
-  project_id?: number
-  projectId?: number
-}) {
-  return payload.project_id ?? payload.projectId
+function getTaskProjectId(payload: CreateTaskPayload) {
+  return payload.project_id
 }
 
 function buildProjectTaskUrl(projectId: number, taskId: number) {
@@ -125,14 +120,14 @@ function buildProjectTaskUrl(projectId: number, taskId: number) {
 
 function normalizeTaskMutationPayload(payload: Partial<CreateTaskPayload>) {
   const normalized = {
-    project_id: payload.project_id ?? payload.projectId,
+    project_id: payload.project_id,
     title: payload.title,
     description: payload.description,
     status: payload.status ? getPrimaryApiStatus(payload.status) : undefined,
     priority: payload.priority,
-    due_date: payload.due_date ?? payload.dueDate,
-    estimated_time: payload.estimated_time ?? payload.estimatedTime,
-    assigned_users: payload.assigned_users ?? payload.assignedUsers,
+    due_date: payload.due_date,
+    estimated_minutes: payload.estimated_minutes,
+    assignees: payload.assignees,
     tags: payload.tags,
   }
 

@@ -25,11 +25,11 @@ export function TaskDetailModal({
 
   const [isEditing, setIsEditing] = useState(false)
   const [formData, setFormData] = useState<Partial<Task>>({})
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<User[]>([])
 
   void currentUser
-  const dueDate = task?.due_date ?? task?.dueDate
-  const projectId = task?.project_id ?? task?.projectId ?? task?.project?.id
+  const dueDate = task?.due_date
+  const projectId = task?.project_id
   const storeProjectName = projects.find(
     (project) => project.id === projectId,
   )?.name
@@ -37,11 +37,11 @@ export function TaskDetailModal({
     task?.project?.name ??
     projects.find((p) => p.id === projectId)?.name ??
     (projectId ? `Project ${projectId}` : 'No project')
-  const taskTags = task?.task_tags ?? task?.taskTags
+  const taskTags = task?.tags
 
   useEffect(() => {
-  userService.getUsers().then(setUsers);
-}, []);
+    userService.getUsers().then(setUsers)
+  }, [])
 
   useEffect(() => {
     if (!isOpen || !task) {
@@ -54,8 +54,8 @@ export function TaskDetailModal({
       description: task.description,
       status: task.status,
       priority: task.priority,
-      due_date: task.due_date ?? task.dueDate,
-      project_id: task.project_id ?? task.projectId ?? task.project?.id,
+      due_date: task.due_date,
+      project_id: task.project_id,
     })
   }, [isOpen, task])
 
@@ -67,8 +67,8 @@ export function TaskDetailModal({
       description: task.description,
       status: task.status,
       priority: task.priority,
-      due_date: task.due_date ?? task.dueDate,
-      project_id: task.project_id ?? task.projectId ?? task.project?.id,
+      due_date: task.due_date,
+      project_id: task.project_id,
     })
 
     setIsEditing(true)
@@ -115,24 +115,24 @@ export function TaskDetailModal({
 
   // 🟢 UPDATE TASK
   async function handleUpdate() {
-  if (!task) return
+    if (!task) return
 
-  try {
+    try {
       await taskService.updateTask({
-      id: task.id,
-      ...formData,
-      projectId: Number(formData.project_id ?? projectId),
-    })
+        id: task.id,
+        ...formData,
+        project_id: Number(formData.project_id ?? projectId),
+      })
 
-    // 🔥 atualiza o store
-    useStore.getState().updateTask(task.id, formData)
+      // 🔥 atualiza o store
+      useStore.getState().updateTask(task.id, formData)
 
-    setIsEditing(false)
-    onClose()
-  } catch (err) {
-    console.error('Erro ao atualizar tarefa:', err)
+      setIsEditing(false)
+      onClose()
+    } catch (err) {
+      console.error('Erro ao atualizar tarefa:', err)
+    }
   }
-}
 
   // 🔴 DELETE TASK
   async function handleDelete() {
@@ -330,11 +330,8 @@ export function TaskDetailModal({
                 Assigned Users
               </span>
               <p className="text-slate-900">
-                {task.assigned_users && task.assigned_users.length > 0
-                  ? users
-                  .filter((u) => (task.assigned_users ?? []).includes(u.id))
-                  .map((u) => u.name)
-                  .join(', ')
+                {task.assignees && task.assignees.length > 0
+                  ? task.assignees.map((user) => user.name).join(', ')
                   : 'No users assigned'}
               </p>
             </div>
