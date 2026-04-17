@@ -17,6 +17,10 @@ const projectFormSchema = z.object({
 export type ProjectFormValues = z.infer<typeof projectFormSchema>;
 
 type ProjectFormProps = {
+  initialValues?: {
+    name: string;
+    description?: string;
+  };
   defaultValues?: Partial<CreateProjectPayload>;
   isSubmitting?: boolean;
   submitLabel?: string;
@@ -27,6 +31,7 @@ type ProjectFormProps = {
 };
 
 export function ProjectForm({
+  initialValues,
   defaultValues,
   isSubmitting = false,
   submitLabel = "Criar projeto",
@@ -43,19 +48,26 @@ export function ProjectForm({
   } = useForm<ProjectFormValues>({
     resolver: zodResolver(projectFormSchema),
     defaultValues: {
-      name: defaultValues?.name ?? "",
-      description: defaultValues?.description ?? "",
+      name: initialValues?.name ?? defaultValues?.name ?? "",
+      description: initialValues?.description ?? defaultValues?.description ?? "",
     },
   });
 
   useEffect(() => {
-    if (isSubmitSuccessful) {
-      reset({
-        name: defaultValues?.name ?? "",
-        description: defaultValues?.description ?? "",
-      });
-    }
-  }, [defaultValues?.description, defaultValues?.name, isSubmitSuccessful, reset]);
+  reset({
+    name: initialValues?.name ?? "",
+    description: initialValues?.description ?? "",
+  });
+}, [initialValues, reset]);
+
+  useEffect(() => {
+  if (isSubmitSuccessful) {
+    reset({
+      name: "",
+      description: "",
+    });
+  }
+}, [isSubmitSuccessful, reset]);
 
   return (
     <form onSubmit={handleSubmit((values) => onSubmit(values))} className={cn("space-y-5", className)}>

@@ -39,7 +39,7 @@ interface ProjectsState {
     projectData: import('../types').CreateProjectPayload,
   ) => Promise<Project>
   addProject: (project: Project) => void
-  updateProject: (id: number, updates: Partial<Project>) => void
+  updateProject: (id: number, updates: Partial<Project>) => Project
   removeProject: (id: number) => void
 }
 
@@ -132,12 +132,27 @@ export const useStore = create<AppState>()(
             ...state.projects.filter((item) => item.id !== project.id),
           ],
         })),
-      updateProject: (id, updates) =>
-        set((state) => ({
-          projects: state.projects.map((p) =>
-            p.id === id ? { ...p, ...updates } : p,
-          ),
-        })),
+      updateProject: (id, updates) => {
+  let updated: Project | undefined
+
+  set((state) => {
+    const projects = state.projects.map((p) => {
+      if (p.id === id) {
+        updated = { ...p, ...updates }
+        return updated
+      }
+      return p
+    })
+
+    return { projects }
+  })
+
+  if (!updated) {
+  throw new Error('Project not found')
+}
+
+return updated
+},
       removeProject: (id) =>
         set((state) => ({
           projects: state.projects.filter((p) => p.id !== id),

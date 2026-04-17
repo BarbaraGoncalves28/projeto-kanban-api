@@ -9,11 +9,59 @@ import { SkeletonCard } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { CheckCircle2, FolderPlus, RefreshCw } from "lucide-react";
 import type { Project } from "@/lib/types";
+import { projectService } from "@/lib/services";
 
 export function ProjectsSection() {
   const { projects, projectsLoading, projectsError, fetchProjects } = useStore();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
+  const [projectToEdit, setProjectToEdit] = useState<Project | null>(null);
+
+  function closeModal() {
+    setIsCreateModalOpen(false);
+    setProjectToEdit(null);
+    setSuccessMessage(null);
+  }
+
+  const handleDeleteProject = (project: Project) => {
+  setProjectToDelete(project);
+};
+
+const confirmDeleteProject = async () => {
+  if (!projectToDelete) return;
+
+  try {
+    setDeletingId(projectToDelete.id);
+
+    await projectService.deleteProject(projectToDelete.id);
+    await fetchProjects();
+
+    setSuccessMessage(`Projeto "${projectToDelete.name}" deletado com sucesso.`);
+    setProjectToDelete(null);
+  } catch (error) {
+    console.error("Erro ao deletar projeto:", error);
+  } finally {
+    setDeletingId(null);
+  }
+};
+
+useEffect(() => {
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (e.key === "Escape" && !deletingId) {
+      setProjectToDelete(null);
+    }
+  };
+
+  if (projectToDelete) {
+    document.addEventListener("keydown", handleKeyDown);
+  }
+
+  return () => {
+    document.removeEventListener("keydown", handleKeyDown);
+  };
+}, [projectToDelete, deletingId]);
 
   useEffect(() => {
     fetchProjects();
@@ -28,7 +76,7 @@ export function ProjectsSection() {
       setSuccessMessage(null);
     }, 4000);
 
-    return () => window.clearTimeout(timeout);
+    return () => clearTimeout(timeout);
   }, [successMessage]);
 
   function handleCreateProject() {
@@ -36,7 +84,8 @@ export function ProjectsSection() {
   }
 
   function handleProjectCreated(project: Project) {
-    setSuccessMessage(`Projeto "${project.name}" criado com sucesso.`);
+    setSuccessMessage(`Projeto "${project.name}" salvo com sucesso.`);
+    closeModal();
   }
 
   if (projectsLoading) {
@@ -57,8 +106,9 @@ export function ProjectsSection() {
       </section>
       <CreateProjectModal
         isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        onProjectCreated={handleProjectCreated}
+          onClose={closeModal}
+          onSuccess={handleProjectCreated}
+          projectToEdit={projectToEdit}
       />
       </>
     );
@@ -89,8 +139,9 @@ export function ProjectsSection() {
       </section>
       <CreateProjectModal
         isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        onProjectCreated={handleProjectCreated}
+          onClose={closeModal}
+          onSuccess={handleProjectCreated}
+          projectToEdit={projectToEdit}
       />
       </>
     );
@@ -130,7 +181,8 @@ export function ProjectsSection() {
         ) : (
           <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {projects.map((project) => (
-              <ProjectCard key={project.id} project={project} />
+              <ProjectCard key={project.id} project={project} onDelete={handleDeleteProject} onEdit={(project) => { setProjectToEdit(project);setIsCreateModalOpen(true);
+}} isDeleting={deletingId === project.id}/>
             ))}
           </div>
         )}
@@ -138,9 +190,47 @@ export function ProjectsSection() {
 
       <CreateProjectModal
         isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        onProjectCreated={handleProjectCreated}
+        onClose={closeModal}
+        onSuccess={handleProjectCreated}
+        projectToEdit={projectToEdit}
       />
+
+      {projectToDelete && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setProjectToDelete(null)}>
+    <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl" onClick={(e) => e.stopPropagation()}>
+      
+      <h3 className="text-lg font-semibold mb-2">
+        Deletar projeto
+      </h3>
+
+      <p className="text-sm text-muted-foreground mb-6">
+        Tem certeza que deseja deletar{" "}
+        <span className="font-medium text-foreground">
+          {projectToDelete.name}
+        </span>
+        ?
+      </p>
+
+      <div className="flex justify-end gap-3">
+        <button
+          onClick={() => setProjectToDelete(null)}
+          disabled={deletingId === projectToDelete.id}
+  className="px-4 py-2 text-sm text-slate-600 hover:text-slate-900 disabled:opacity-50"
+        >
+          Cancelar
+        </button>
+
+        <Button
+          onClick={confirmDeleteProject}
+          loading={deletingId === projectToDelete.id}
+          disabled={deletingId === projectToDelete.id}
+        >
+          Deletar
+        </Button>
+      </div>
+    </div>
+  </div>
+)}
     </>
   );
 }

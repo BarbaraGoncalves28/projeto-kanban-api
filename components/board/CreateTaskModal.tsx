@@ -16,6 +16,7 @@ const createTaskSchema = z.object({
   projectId: z.number().min(1, "Project is required"),
   priority: z.enum(["baixa", "media", "alta", "urgente"]),
   dueDate: z.string().optional(),
+  createdAt: z.string().optional(),
   tags: z.array(z.number()).default([]),
   assignedUsers: z.array(z.number()).default([]),
 });
@@ -35,6 +36,7 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated }: CreateTaskMo
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [users, setUsers] = useState<User[]>([]);
+  const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
 
   const {
     register,
@@ -53,6 +55,7 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated }: CreateTaskMo
   });
 
   const selectedTags = watch("tags");
+  const selectedUsers = watch("assignedUsers") || [];
 
   useEffect(() => {
     if (isOpen) {
@@ -86,15 +89,15 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated }: CreateTaskMo
     try {
       const project = projects.find(p => p.id === data.projectId);
 
-      const now = new Date().toISOString();
-
       await createTask({
         title: data.title,
         description: data.description,
         status: "pendente",
         priority: data.priority,
         due_date: data.dueDate,
-        created_at: now,
+        created_at: data.createdAt
+        ? new Date(data.createdAt).toISOString()
+        : new Date().toISOString(),
         project_id: data.projectId,
         project: project,
         creator_id: user.id,
@@ -198,6 +201,12 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated }: CreateTaskMo
               </div>
 
               <TextField
+  label="Created At"
+  type="date"
+  {...register("createdAt")}
+/>
+
+              <TextField
                 label="Due Date"
                 type="date"
                 {...register("dueDate")}
@@ -229,31 +238,75 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated }: CreateTaskMo
                   ))}
                 </div>
               </div>
-
-              <div>
-  <label className="block text-sm font-medium text-slate-700 mb-3">
+<div className="relative">
+  <label className="block text-sm font-medium text-slate-700 mb-2">
     Assigned Users
   </label>
 
-  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-    {users.map((user) => (
-      <label key={user.id} className="flex items-center space-x-2 cursor-pointer">
-        <input
-          type="checkbox"
-          checked={watch("assignedUsers")?.includes(user.id) || false}
-          onChange={() => {
-            const current = watch("assignedUsers") || [];
-            const updated = current.includes(user.id)
-              ? current.filter(id => id !== user.id)
-              : [...current, user.id];
-
-            setValue("assignedUsers", updated);
-          }}
-        />
-        <span className="text-sm">{user.name}</span>
-      </label>
-    ))}
+  {/* Botão do select */}
+  <div
+    onClick={() => setIsUserDropdownOpen((prev) => !prev)}
+    className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm cursor-pointer"
+  >
+    {selectedUsers.length > 0 ? "Add more users" : "Select users"}
   </div>
+
+  {/* Dropdown */}
+  {isUserDropdownOpen && (
+    <div className="absolute z-10 mt-2 w-full rounded-xl border border-slate-200 bg-white shadow-lg max-h-48 overflow-y-auto">
+      {users.map((user) => {
+        const isSelected = selectedUsers.includes(user.id);
+
+        return (
+          <div
+            key={user.id}
+            onClick={() => {
+              const updated = isSelected
+                ? selectedUsers.filter((id) => id !== user.id)
+                : [...selectedUsers, user.id];
+
+              setValue("assignedUsers", updated);
+
+              setIsUserDropdownOpen(false);
+            }}
+            className={`px-4 py-2 cursor-pointer hover:bg-slate-100 ${
+              isSelected ? "bg-slate-100 font-medium" : ""
+            }`}
+          >
+            {user.name}
+          </div>
+        );
+      })}
+    </div>
+  )}  
+
+
+
+  {/* Selected Users */}
+{selectedUsers.length > 0 && (
+  <div className="flex flex-wrap gap-2 mt-3">
+    {users
+      .filter((u) => selectedUsers.includes(u.id))
+      .map((u) => (
+        <div
+          key={u.id}
+          className="flex items-center gap-2 bg-slate-100 text-slate-800 px-3 py-1 rounded-full text-sm"
+        >
+          <span>{u.name}</span>
+          <button
+            type="button"
+            onClick={() => {
+              const updated = selectedUsers.filter((id) => id !== u.id);
+              setValue("assignedUsers", updated);
+            }}
+            className="text-slate-500 hover:text-red-500"
+          >
+            ✕
+          </button>
+        </div>
+      ))}
+  </div>
+)}
 </div>
 
               <div className="flex justify-end gap-4 pt-4">

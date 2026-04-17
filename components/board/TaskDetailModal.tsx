@@ -1,6 +1,6 @@
 'use client'
 
-import { projectService, taskService } from '@/lib/services'
+import { projectService, taskService, userService } from '@/lib/services'
 import { useStore } from '@/lib/store'
 import type { Task, User } from '@/lib/types'
 import { useEffect, useState } from 'react'
@@ -25,6 +25,7 @@ export function TaskDetailModal({
 
   const [isEditing, setIsEditing] = useState(false)
   const [formData, setFormData] = useState<Partial<Task>>({})
+  const [users, setUsers] = useState<User[]>([]);
 
   void currentUser
   const dueDate = task?.due_date ?? task?.dueDate
@@ -39,13 +40,15 @@ export function TaskDetailModal({
   const taskTags = task?.task_tags ?? task?.taskTags
 
   useEffect(() => {
+  userService.getUsers().then(setUsers);
+}, []);
+
+  useEffect(() => {
     if (!isOpen || !task) {
       setIsEditing(false)
-      setFormData({})
       return
     }
 
-    setIsEditing(false)
     setFormData({
       title: task.title,
       description: task.description,
@@ -112,19 +115,24 @@ export function TaskDetailModal({
 
   // 🟢 UPDATE TASK
   async function handleUpdate() {
-    if (!task) return
-    try {
+  if (!task) return
+
+  try {
       await taskService.updateTask({
-        id: task.id,
-        ...formData,
-        projectId: Number(formData.project_id ?? projectId),
-      })
-      setIsEditing(false)
-      onClose() // pode trocar por refetch futuramente
-    } catch (err) {
-      console.error('Erro ao atualizar tarefa:', err)
-    }
+      id: task.id,
+      ...formData,
+      projectId: Number(formData.project_id ?? projectId),
+    })
+
+    // 🔥 atualiza o store
+    useStore.getState().updateTask(task.id, formData)
+
+    setIsEditing(false)
+    onClose()
+  } catch (err) {
+    console.error('Erro ao atualizar tarefa:', err)
   }
+}
 
   // 🔴 DELETE TASK
   async function handleDelete() {
@@ -134,6 +142,7 @@ export function TaskDetailModal({
 
     try {
       await taskService.deleteTask(task.id)
+      useStore.getState().removeTask(task.id)
       onClose()
     } catch (err) {
       console.error('Erro ao deletar tarefa:', err)
@@ -321,8 +330,11 @@ export function TaskDetailModal({
                 Assigned Users
               </span>
               <p className="text-slate-900">
-                {task.assignees && task.assignees.length > 0
-                  ? task.assignees.map((u) => u.name).join(', ')
+                {task.assigned_users && task.assigned_users.length > 0
+                  ? users
+                  .filter((u) => (task.assigned_users ?? []).includes(u.id))
+                  .map((u) => u.name)
+                  .join(', ')
                   : 'No users assigned'}
               </p>
             </div>

@@ -9,7 +9,8 @@ import type { CreateProjectPayload, Project } from "@/lib/types";
 type CreateProjectModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  onProjectCreated?: (project: Project) => void;
+  onSuccess?: (project: Project) => void;
+  projectToEdit?: Project | null;
 };
 
 function getErrorMessage(error: unknown) {
@@ -31,11 +32,12 @@ function getErrorMessage(error: unknown) {
   return "Nao foi possivel criar o projeto. Tente novamente.";
 }
 
-export function CreateProjectModal({ isOpen, onClose, onProjectCreated }: CreateProjectModalProps) {
-  const { createProject } = useStore();
+export function CreateProjectModal({ isOpen, onClose, onSuccess, projectToEdit, }: CreateProjectModalProps) {
+  const { createProject, updateProject } = useStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const isEditing = !!projectToEdit;
 
   useEffect(() => {
     if (!isOpen) {
@@ -64,23 +66,33 @@ export function CreateProjectModal({ isOpen, onClose, onProjectCreated }: Create
     return null;
   }
 
-  async function handleSubmit(values: CreateProjectPayload) {
-    setIsSubmitting(true);
-    setErrorMessage(null);
+async function handleSubmit(values: CreateProjectPayload) {
+  setIsSubmitting(true);
+  setErrorMessage(null);
 
-    try {
-      const project = await createProject(values);
-      setSuccessMessage(`Projeto "${project.name}" criado com sucesso.`);
-      onProjectCreated?.(project);
-      window.setTimeout(() => {
-        onClose();
-      }, 600);
-    } catch (error) {
-      setErrorMessage(getErrorMessage(error));
-    } finally {
-      setIsSubmitting(false);
+  try {
+    let project: Project;
+
+    if (isEditing) {
+      project = await updateProject(projectToEdit!.id, values);
+    } else {
+      project = await createProject(values);
     }
+
+    onSuccess?.(project);
+    setSuccessMessage(
+      isEditing
+        ? "Projeto atualizado com sucesso!"
+        : "Projeto criado com sucesso!"
+    );
+
+    setTimeout(() => onClose(), 300);
+  } catch (error) {
+    setErrorMessage(getErrorMessage(error));
+  } finally {
+    setIsSubmitting(false);
   }
+}
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
@@ -90,12 +102,14 @@ export function CreateProjectModal({ isOpen, onClose, onProjectCreated }: Create
             <div className="space-y-2">
               <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
                 <FolderPlus className="h-3.5 w-3.5" />
-                Novo Projeto
+                {isEditing ? "Editar Projeto" : "Novo Projeto"}
               </div>
               <div>
-                <h2 className="text-2xl font-semibold tracking-tight">Criar projeto</h2>
+                <h2 className="text-2xl font-semibold tracking-tight">{isEditing ? "Editar projeto" : "Criar projeto"}</h2>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Adicione um novo projeto ao painel sem sair da tela atual.
+                  {isEditing
+                  ? "Atualize as informações do projeto."
+                  : "Adicione um novo projeto ao painel sem sair da tela atual."}
                 </p>
               </div>
             </div>
@@ -120,8 +134,16 @@ export function CreateProjectModal({ isOpen, onClose, onProjectCreated }: Create
           ) : null}
 
           <ProjectForm
+          initialValues={
+          projectToEdit
+      ?   {
+            name: projectToEdit.name,
+            description: projectToEdit.description ?? "",
+          }
+            : undefined
+          }
             isSubmitting={isSubmitting}
-            submitLabel="Salvar projeto"
+            submitLabel={isEditing ? "Salvar alterações" : "Salvar projeto"}
             errorMessage={errorMessage}
             onCancel={onClose}
             onSubmit={handleSubmit}

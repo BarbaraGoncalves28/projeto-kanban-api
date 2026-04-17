@@ -49,7 +49,10 @@ export function TaskCard({ task, onViewDetails }: TaskCardProps) {
         <GripVertical className="h-4 w-4 text-muted-foreground" />
       </div>
 
-      <div className="pl-6">
+      <div className="pl-6" onClick={(e) => {
+              e.stopPropagation();
+              onViewDetails?.();
+            }}>
         <h4 className="font-semibold text-foreground mb-2 line-clamp-2">
           {task.title}
         </h4>
