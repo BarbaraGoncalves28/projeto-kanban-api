@@ -39,7 +39,7 @@ interface ProjectsState {
     projectData: import('../types').CreateProjectPayload,
   ) => Promise<Project>
   addProject: (project: Project) => void
-  updateProject: (id: number, updates: Partial<Project>) => Project
+  updateProject: (id: number, updates: Partial<Project>) => Promise<Project>
   removeProject: (id: number) => void
 }
 
@@ -132,27 +132,25 @@ export const useStore = create<AppState>()(
             ...state.projects.filter((item) => item.id !== project.id),
           ],
         })),
-      updateProject: (id, updates) => {
-        let updated: Project | undefined
+      updateProject: async (id, updates) => {
+  try {
+    const { projectService } = await import('@/lib/services')
 
-        set((state) => {
-          const projects = state.projects.map((p) => {
-            if (p.id === id) {
-              updated = { ...p, ...updates }
-              return updated
-            }
-            return p
-          })
+    // 🔥 chama API
+    const updatedProject = await projectService.updateProject(id, updates)
 
-          return { projects }
-        })
+    // 🔥 atualiza estado local com resposta real do backend
+    set((state) => ({
+      projects: state.projects.map((p) =>
+        p.id === id ? updatedProject : p
+      ),
+    }))
 
-        if (!updated) {
-          throw new Error('Project not found')
-        }
-
-        return updated
-      },
+    return updatedProject
+  } catch (error) {
+    throw error
+  }
+},
       removeProject: (id) =>
         set((state) => ({
           projects: state.projects.filter((p) => p.id !== id),

@@ -17,6 +17,7 @@ const createTaskSchema = z.object({
   priority: z.enum(["baixa", "media", "alta", "urgente"]),
   dueDate: z.string().optional(),
   createdAt: z.string().optional(),
+  estimatedMinutes: z.number().optional(),
   tags: z.array(z.number()).default([]),
   assignedUsers: z.array(z.number()).default([]),
 });
@@ -88,6 +89,7 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated }: CreateTaskMo
         status: 'pendente',
         priority: data.priority,
         due_date: data.dueDate,
+        estimated_minutes: data.estimatedMinutes,
         project_id: data.projectId,
         assignees: data.assignedUsers,
         tags: data.tags,
@@ -132,27 +134,7 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated }: CreateTaskMo
             </div>
           ) : (
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Project
-                  </label>
-                  <select
-                    {...register("projectId", { valueAsNumber: true })}
-                    className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-200"
-                  >
-                    <option value={0}>Select a project</option>
-                    {projects.map((project) => (
-                      <option key={project.id} value={project.id}>
-                        {project.name}
-                      </option>
-                    ))}
-                  </select>
-                  {errors.projectId && (
-                    <p className="mt-1 text-sm text-red-600">{errors.projectId.message}</p>
-                  )}
-                </div>
-
+              <div className="w-full">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
                     Priority
@@ -188,16 +170,16 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated }: CreateTaskMo
               </div>
 
               <TextField
-  label="Created At"
-  type="date"
-  {...register("createdAt")}
-/>
-
-              <TextField
                 label="Due Date"
                 type="date"
                 {...register("dueDate")}
               />
+
+              <TextField
+                label="Duration (minutes)"
+                type="number"
+                {...register("estimatedMinutes", { valueAsNumber: true })}
+               />
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-3">
