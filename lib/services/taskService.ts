@@ -194,9 +194,9 @@ export const taskService = {
     return normalizeTaskFromApi(response.data.data ?? response.data)
   },
 
-  async deleteTask(id: number, token?: string): Promise<void> {
+  async deleteTask(id: number, projectId: number, token?: string): Promise<void> {
     const client = createApiClient(token)
-    await client.delete(`/tasks/${id}`)
+    await client.delete(`/projects/${projectId}/tasks/${id}`)
   },
 
   async updateTaskStatus(

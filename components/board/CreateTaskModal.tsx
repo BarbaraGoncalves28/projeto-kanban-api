@@ -13,7 +13,6 @@ import type { Project, Tag, User } from "@/lib/types";
 const createTaskSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().optional(),
-  projectId: z.number().min(1, "Project is required"),
   priority: z.enum(["baixa", "media", "alta", "urgente"]),
   dueDate: z.string().optional(),
   createdAt: z.string().optional(),
@@ -28,9 +27,10 @@ type CreateTaskModalProps = {
   isOpen: boolean;
   onClose: () => void;
   onTaskCreated: () => void;
+  projectId: number
 };
 
-export function CreateTaskModal({ isOpen, onClose, onTaskCreated }: CreateTaskModalProps) {
+export function CreateTaskModal({ isOpen, onClose, onTaskCreated, projectId }: CreateTaskModalProps) {
   const { createTask, user } = useStore();
   const [projects, setProjects] = useState<Project[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
@@ -90,7 +90,7 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated }: CreateTaskMo
         priority: data.priority,
         due_date: data.dueDate,
         estimated_minutes: data.estimatedMinutes,
-        project_id: data.projectId,
+        project_id: projectId,
         assignees: data.assignedUsers,
         tags: data.tags,
       })

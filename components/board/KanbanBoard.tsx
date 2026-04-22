@@ -178,6 +178,7 @@ export function KanbanBoard() {
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onTaskCreated={() => fetchTasks(selectedProjectId)}
+        projectId={selectedProjectId}
       />
 
       <TaskDetailModal

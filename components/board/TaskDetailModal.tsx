@@ -1,8 +1,8 @@
 'use client'
 
-import { projectService, taskService, userService } from '@/lib/services'
+import { projectService, taskService, userService, tagService } from '@/lib/services'
 import { useStore } from '@/lib/store'
-import type { Task, User } from '@/lib/types'
+import type { Task, User, Tag } from '@/lib/types'
 import { useEffect, useState } from 'react'
 
 type TaskDetailModalProps = {
@@ -10,6 +10,18 @@ type TaskDetailModalProps = {
   isOpen: boolean
   onClose: () => void
   currentUser?: User
+}
+
+type UpdateTaskForm = {
+  title?: string
+  description?: string
+  status?: Task['status']
+  priority?: Task['priority']
+  due_date?: string
+  project_id?: number
+  estimated_minutes?: number
+  assignees?: number[]
+  tags?: number[]
 }
 
 export function TaskDetailModal({
@@ -24,8 +36,13 @@ export function TaskDetailModal({
   )
 
   const [isEditing, setIsEditing] = useState(false)
-  const [formData, setFormData] = useState<Partial<Task>>({})
+  const [formData, setFormData] = useState<UpdateTaskForm>({})
   const [users, setUsers] = useState<User[]>([])
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [tags, setTags] = useState<Tag[]>([])
+  const [isTagDropdownOpen, setIsTagDropdownOpen] = useState(false)
+  const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false)
 
   void currentUser
   const dueDate = task?.due_date
@@ -44,20 +61,9 @@ export function TaskDetailModal({
   }, [])
 
   useEffect(() => {
-    if (!isOpen || !task) {
-      setIsEditing(false)
-      return
-    }
+  tagService.getTags().then(setTags)
+}, [])
 
-    setFormData({
-      title: task.title,
-      description: task.description,
-      status: task.status,
-      priority: task.priority,
-      due_date: task.due_date,
-      project_id: task.project_id,
-    })
-  }, [isOpen, task])
 
   function handleStartEdit() {
     if (!task) return
@@ -69,6 +75,9 @@ export function TaskDetailModal({
       priority: task.priority,
       due_date: task.due_date,
       project_id: task.project_id,
+      estimated_minutes: task.estimated_minutes,
+      assignees: task.assignees?.map(u => u.id) || [],
+      tags: task.tags?.map(t => t.id) || [],
     })
 
     setIsEditing(true)
@@ -120,12 +129,41 @@ export function TaskDetailModal({
     try {
       await taskService.updateTask({
         id: task.id,
-        ...formData,
+        title: formData.title,
+        description: formData.description,
+        status: formData.status,
+        priority: formData.priority,
+        due_date: formData.due_date,
+        estimated_minutes: formData.estimated_minutes,
         project_id: Number(formData.project_id ?? projectId),
+
+        // 🔥 AQUI ESTÁ A CORREÇÃO
+        assignees:
+        formData.assignees ??
+        task.assignees?.map((user) => user.id),
+        tags: formData.tags,
       })
 
       // 🔥 atualiza o store
-      useStore.getState().updateTask(task.id, formData)
+      useStore.getState().updateTask(task.id, {
+  title: formData.title ?? task.title,
+  description: formData.description ?? task.description,
+  status: formData.status ?? task.status,
+  priority: formData.priority ?? task.priority,
+  due_date: formData.due_date ?? task.due_date,
+  project_id: formData.project_id ?? task.project_id,
+  estimated_minutes:
+    formData.estimated_minutes ?? task.estimated_minutes,
+
+  // ✅ mantém formato correto (User[])
+  assignees: users.filter(user =>
+  formData.assignees?.includes(user.id)
+),
+
+tags: tags.filter(tag =>
+  formData.tags?.includes(tag.id)
+),
+})
 
       setIsEditing(false)
       onClose()
@@ -135,21 +173,26 @@ export function TaskDetailModal({
   }
 
   // 🔴 DELETE TASK
-  async function handleDelete() {
-    if (!task) return
-    const confirmDelete = confirm('Tem certeza que deseja deletar essa tarefa?')
-    if (!confirmDelete) return
+  async function confirmDelete() {
+  if (!task || !task.project_id) return
 
-    try {
-      await taskService.deleteTask(task.id)
-      useStore.getState().removeTask(task.id)
-      onClose()
-    } catch (err) {
-      console.error('Erro ao deletar tarefa:', err)
-    }
+  try {
+    setIsDeleting(true)
+
+    await taskService.deleteTask(task.id, task.project_id)
+    useStore.getState().removeTask(task.id)
+
+    setShowDeleteModal(false)
+    onClose()
+  } catch (err) {
+    console.error('Erro ao deletar tarefa:', err)
+  } finally {
+    setIsDeleting(false)
   }
+}
 
   return (
+    <>
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-8">
@@ -168,7 +211,10 @@ export function TaskDetailModal({
               </h2>
             )}
             <button
-              onClick={onClose}
+              onClick={() => {setIsEditing(false)
+              setShowDeleteModal(false)
+              onClose()
+              }}
               className="text-slate-400 hover:text-slate-600 text-xl"
             >
               ✕
@@ -200,9 +246,19 @@ export function TaskDetailModal({
                 <span className="text-sm font-medium text-slate-500">
                   Status
                 </span>
+
+                {isEditing ? (
+                  <select className="border p-2 w-full" value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value as Task['status'],})}>
+                    <option value="pendente">Pendente</option>
+                    <option value="em_progresso">Em progresso</option>
+                    <option value="revisao">Revisão</option>
+                    <option value="concluido">Concluído</option>
+                  </select>
+                ) : (
                 <p className="text-slate-900 capitalize">
                   {task.status.replace('_', ' ')}
                 </p>
+                )}
               </div>
               <div>
                 <span className="text-sm font-medium text-slate-500">
@@ -299,6 +355,41 @@ export function TaskDetailModal({
                   </p>
                 )}
               </div>
+
+                <div>
+  <span className="text-sm font-medium text-slate-500">
+    Creator
+  </span>
+  <p className="text-slate-900">
+    {task.creator?.name || 'Unknown'}
+  </p>
+</div>
+
+              <div>
+  <span className="text-sm font-medium text-slate-500">
+    Duration (minutes)
+  </span>
+
+  {isEditing ? (
+    <input
+      type="number"
+      className="border p-2 w-full"
+      value={formData.estimated_minutes ?? ''}
+      onChange={(e) =>
+        setFormData({
+          ...formData,
+          estimated_minutes: Number(e.target.value),
+        })
+      }
+    />
+  ) : (
+    <p className="text-slate-900">
+      {task.estimated_minutes
+        ? `${task.estimated_minutes} min`
+        : 'No estimate'}
+    </p>
+  )}
+</div>
             </div>
 
             {taskTags && taskTags.length > 0 && (
@@ -306,6 +397,77 @@ export function TaskDetailModal({
                 <span className="text-sm font-medium text-slate-500 block mb-2">
                   Tags
                 </span>
+
+
+                {isEditing ? (
+    <div className="relative">
+  <div
+    onClick={() => setIsTagDropdownOpen(prev => !prev)}
+    className="w-full border p-2 cursor-pointer"
+  >
+    {formData.tags && formData.tags.length > 0
+      ? "Adicionar mais tags"
+      : "Selecionar tags"}
+  </div>
+
+  {isTagDropdownOpen && (
+    <div className="absolute z-10 mt-2 w-full bg-white border rounded shadow max-h-48 overflow-y-auto">
+      {tags.map(tag => {
+        const isSelected = formData.tags?.includes(tag.id)
+
+        return (
+          <div
+            key={tag.id}
+            onClick={() => {
+              const updated = isSelected
+                ? formData.tags?.filter(id => id !== tag.id)
+                : [...(formData.tags || []), tag.id]
+
+              setFormData({ ...formData, tags: updated })
+              setIsTagDropdownOpen(false)
+            }}
+            className={`px-4 py-2 cursor-pointer hover:bg-gray-100 ${
+              isSelected ? "bg-gray-100 font-medium" : ""
+            }`}
+          >
+            {tag.name}
+          </div>
+        )
+      })}
+    </div>
+  )}
+
+  {/* TAGS SELECIONADAS */}
+  {formData.tags && formData.tags.length > 0 && (
+    <div className="flex flex-wrap gap-2 mt-2">
+      {tags
+        .filter(tag => formData.tags?.includes(tag.id))
+        .map(tag => (
+          <div
+            key={tag.id}
+            className="flex items-center gap-2 px-3 py-1 rounded-full text-sm"
+            style={{
+              backgroundColor: tag.color ? `${tag.color}20` : '#f1f5f9',
+              color: tag.color || '#64748b',
+            }}
+          >
+            <span>{tag.name}</span>
+            <button
+              type="button"
+              onClick={() => {
+                const updated = formData.tags?.filter(id => id !== tag.id)
+                setFormData({ ...formData, tags: updated })
+              }}
+              className="hover:text-red-500"
+            >
+              ✕
+            </button>
+          </div>
+        ))}
+    </div>
+  )}
+</div>
+  ) : (
                 <div className="flex flex-wrap gap-2">
                   {taskTags.map((tag) => (
                     <span
@@ -313,7 +475,8 @@ export function TaskDetailModal({
                       className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium"
                       style={{
                         backgroundColor: tag.color
-                          ? `${tag.color}20`
+  
+                        ? `${tag.color}20`
                           : '#f1f5f9',
                         color: tag.color || '#64748b',
                       }}
@@ -322,6 +485,7 @@ export function TaskDetailModal({
                     </span>
                   ))}
                 </div>
+                )}
               </div>
             )}
 
@@ -329,11 +493,77 @@ export function TaskDetailModal({
               <span className="text-sm font-medium text-slate-500">
                 Assigned Users
               </span>
+               {isEditing ? (
+    <div className="relative">
+  <div
+    onClick={() => setIsUserDropdownOpen(prev => !prev)}
+    className="w-full border p-2 cursor-pointer"
+  >
+    {formData.assignees && formData.assignees.length > 0
+      ? "Adicionar mais usuários"
+      : "Selecionar usuários"}
+  </div>
+
+  {isUserDropdownOpen && (
+    <div className="absolute z-10 mt-2 w-full bg-white border rounded shadow max-h-48 overflow-y-auto">
+      {users.map(user => {
+        const isSelected = formData.assignees?.includes(user.id)
+
+        return (
+          <div
+            key={user.id}
+            onClick={() => {
+              const updated = isSelected
+                ? formData.assignees?.filter(id => id !== user.id)
+                : [...(formData.assignees || []), user.id]
+
+              setFormData({ ...formData, assignees: updated })
+              setIsUserDropdownOpen(false)
+            }}
+            className={`px-4 py-2 cursor-pointer hover:bg-gray-100 ${
+              isSelected ? "bg-gray-100 font-medium" : ""
+            }`}
+          >
+            {user.name}
+          </div>
+        )
+      })}
+    </div>
+  )}
+
+  {/* USERS SELECIONADOS */}
+  {formData.assignees && formData.assignees.length > 0 && (
+    <div className="flex flex-wrap gap-2 mt-2">
+      {users
+        .filter(user => formData.assignees?.includes(user.id))
+        .map(user => (
+          <div
+            key={user.id}
+            className="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full text-sm"
+          >
+            <span>{user.name}</span>
+            <button
+              type="button"
+              onClick={() => {
+                const updated = formData.assignees?.filter(id => id !== user.id)
+                setFormData({ ...formData, assignees: updated })
+              }}
+              className="hover:text-red-500"
+            >
+              ✕
+            </button>
+          </div>
+        ))}
+    </div>
+  )}
+</div>
+  ) : (
               <p className="text-slate-900">
                 {task.assignees && task.assignees.length > 0
                   ? task.assignees.map((user) => user.name).join(', ')
                   : 'No users assigned'}
               </p>
+              )}
             </div>
 
             <div className="flex gap-3 pt-4">
@@ -363,7 +593,7 @@ export function TaskDetailModal({
                   </button>
 
                   <button
-                    onClick={handleDelete}
+                    onClick={() => setShowDeleteModal(true)}
                     className="bg-red-600 text-white px-4 py-2 rounded"
                   >
                     Deletar
@@ -374,6 +604,49 @@ export function TaskDetailModal({
           </div>
         </div>
       </div>
+
+      {showDeleteModal && (
+  <div
+    className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+    onClick={() => setShowDeleteModal(false)}
+  >
+    <div
+      className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <h3 className="text-lg font-semibold mb-2">
+        Deletar tarefa
+      </h3>
+
+      <p className="text-sm text-muted-foreground mb-6">
+        Tem certeza que deseja deletar{" "}
+        <span className="font-medium text-foreground">
+          {task.title}
+        </span>
+        ?
+      </p>
+
+      <div className="flex justify-end gap-3">
+        <button
+          onClick={() => setShowDeleteModal(false)}
+          disabled={isDeleting}
+          className="px-4 py-2 text-sm text-slate-600 hover:text-slate-900 disabled:opacity-50"
+        >
+          Cancelar
+        </button>
+
+        <button
+          onClick={confirmDelete}
+          disabled={isDeleting}
+          className="bg-red-600 text-white px-4 py-2 rounded"
+        >
+          {isDeleting ? "Deletando..." : "Deletar"}
+        </button>
+      </div>
     </div>
+  </div>
+)}
+    </div>
+    </>
   )
 }
