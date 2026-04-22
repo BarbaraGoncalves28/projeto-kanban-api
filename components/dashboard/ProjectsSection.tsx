@@ -10,6 +10,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { CheckCircle2, FolderPlus, RefreshCw } from "lucide-react";
 import type { Project } from "@/lib/types";
 import { projectService } from "@/lib/services";
+import { cardSurface, modalOverlay, modalPanel, mutedText } from "@/lib/design";
 
 export function ProjectsSection() {
   const { projects, projectsLoading, projectsError, fetchProjects } = useStore();
@@ -91,7 +92,7 @@ useEffect(() => {
   if (projectsLoading) {
     return (
       <>
-      <section className="rounded-3xl border bg-card p-8 shadow-sm">
+      <section className={`${cardSurface} p-8`}>
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold">Projects</h2>
           <Button className="cursor-pointer" onClick={handleCreateProject} disabled>
@@ -117,7 +118,7 @@ useEffect(() => {
   if (projectsError) {
     return (
       <>
-      <section className="rounded-3xl border bg-card p-8 shadow-sm">
+      <section className={`${cardSurface} p-8`}>
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold">Projetos</h2>
           <Button className="cursor-pointer" onClick={handleCreateProject}>
@@ -149,7 +150,7 @@ useEffect(() => {
 
   return (
     <>
-      <section className="rounded-3xl border bg-card p-8 shadow-sm">
+      <section className={`${cardSurface} p-8`}>
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold">Projetos</h2>
           <Button className="cursor-pointer" onClick={handleCreateProject}>
@@ -159,7 +160,7 @@ useEffect(() => {
         </div>
 
         {successMessage ? (
-          <div className="mt-6 flex items-center gap-3 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-700">
+          <div className="mt-6 flex items-center gap-3 rounded-2xl border border-emerald-400/35 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-500/25 dark:bg-emerald-500/10 dark:text-emerald-300">
             <CheckCircle2 className="h-4 w-4" />
             <span>{successMessage}</span>
           </div>
@@ -196,16 +197,16 @@ useEffect(() => {
       />
 
       {projectToDelete && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setProjectToDelete(null)}>
-    <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl" onClick={(e) => e.stopPropagation()}>
+  <div className={modalOverlay} onClick={() => setProjectToDelete(null)}>
+    <div className={`${modalPanel} max-w-md p-6`} onClick={(e) => e.stopPropagation()}>
       
       <h3 className="text-lg font-semibold mb-2">
         Deletar projeto
       </h3>
 
-      <p className="text-sm text-muted-foreground mb-6">
+      <p className={`mb-6 text-sm ${mutedText}`}>
         Tem certeza que deseja deletar{" "}
-        <span className="font-medium text-foreground">
+        <span className="font-medium text-slate-950 dark:text-slate-100">
           {projectToDelete.name.charAt(0).toUpperCase() + projectToDelete.name.slice(1)}
         </span>
         ?
@@ -215,7 +216,7 @@ useEffect(() => {
         <button
           onClick={() => setProjectToDelete(null)}
           disabled={deletingId === projectToDelete.id}
-  className="px-4 py-2 text-sm text-slate-600 hover:text-slate-900 disabled:opacity-50 cursor-pointer"
+  className="cursor-pointer px-4 py-2 text-sm text-slate-600 transition hover:text-slate-950 disabled:opacity-50 dark:text-slate-400 dark:hover:text-slate-100"
         >
           Cancelar
         </button>

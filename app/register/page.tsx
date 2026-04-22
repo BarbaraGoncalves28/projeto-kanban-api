@@ -48,7 +48,7 @@ export default function RegisterPage() {
       }
 
       router.push(data.token ? "/dashboard" : "/login");
-    } catch (error) {
+    } catch {
       setServerError("Unable to register. Please check your connection.");
     } finally {
       setIsLoading(false);

@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
+import { mutedText, pageShell, panelSurface } from "@/lib/design";
 
 export default function BoardPage() {
   const router = useRouter();
@@ -21,7 +22,7 @@ export default function BoardPage() {
 
   if (!hasHydrated || !token) {
     return (
-      <div className="min-h-screen bg-background px-4 py-10">
+      <div className={`${pageShell} px-4 py-10`}>
         <div className="mx-auto w-full max-w-7xl">
           <Skeleton className="h-32 rounded-3xl" />
         </div>
@@ -30,9 +31,9 @@ export default function BoardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background px-4 py-10">
+    <div className={`${pageShell} px-4 py-10`}>
       <div className="mx-auto w-full max-w-7xl space-y-8">
-        <header className="flex flex-col gap-6 rounded-3xl border bg-card p-8 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+        <header className={`flex flex-col gap-6 ${panelSurface} p-8 sm:flex-row sm:items-center sm:justify-between`}>
           <div className="flex items-center gap-4">
             <Link href="/dashboard">
               <Button variant="ghost" size="sm" className="p-2">
@@ -40,11 +41,11 @@ export default function BoardPage() {
               </Button>
             </Link>
             <div>
-              <p className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
+              <p className={`text-sm font-medium uppercase tracking-wider ${mutedText}`}>
                 Kanban Board
               </p>
               <h1 className="mt-1 text-3xl font-bold tracking-tight">Gerencie suas tarefas</h1>
-              <p className="mt-2 text-muted-foreground">
+              <p className={`mt-2 ${mutedText}`}>
                 Arraste e solte as tarefas entre as colunas para atualizar o status delas.
               </p>
             </div>

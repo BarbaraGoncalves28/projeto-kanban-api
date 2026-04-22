@@ -5,6 +5,7 @@ import { CheckCircle2, FolderPlus, X } from "lucide-react";
 import { ProjectForm } from "@/components/projects/ProjectForm";
 import { useStore } from "@/lib/store";
 import type { CreateProjectPayload, Project } from "@/lib/types";
+import { modalOverlay, modalPanel, mutedText } from "@/lib/design";
 
 type CreateProjectModalProps = {
   isOpen: boolean;
@@ -95,18 +96,18 @@ async function handleSubmit(values: CreateProjectPayload) {
 }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-2xl overflow-hidden rounded-3xl border border-border bg-background shadow-2xl">
-        <div className="border-b border-border bg-gradient-to-r from-primary/10 via-transparent to-primary/5 px-6 py-5 sm:px-8">
+    <div className={modalOverlay}>
+      <div className={`${modalPanel} max-w-2xl overflow-hidden`}>
+        <div className="border-b border-slate-200/80 bg-gradient-to-r from-sky-500/10 via-transparent to-sky-500/5 px-6 py-5 dark:border-slate-800/80 sm:px-8">
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-2">
-              <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
+              <div className="inline-flex items-center gap-2 rounded-full border border-sky-500/20 bg-sky-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-sky-700 dark:text-sky-300">
                 <FolderPlus className="h-3.5 w-3.5" />
                 {isEditing ? "Editar Projeto" : "Novo Projeto"}
               </div>
               <div>
                 <h2 className="text-2xl font-semibold tracking-tight">{isEditing ? "Editar projeto" : "Criar projeto"}</h2>
-                <p className="mt-1 text-sm text-muted-foreground">
+                <p className={`mt-1 text-sm ${mutedText}`}>
                   {isEditing
                   ? "Atualize as informações do projeto."
                   : "Adicione um novo projeto ao painel sem sair da tela atual."}
@@ -117,7 +118,7 @@ async function handleSubmit(values: CreateProjectPayload) {
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="rounded-full p-2 text-muted-foreground transition hover:bg-accent hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-full p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-950 disabled:cursor-not-allowed disabled:opacity-50 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
               aria-label="Fechar modal"
             >
               <X className="h-5 w-5 cursor-pointer" />
@@ -127,7 +128,7 @@ async function handleSubmit(values: CreateProjectPayload) {
 
         <div className="px-6 py-6 sm:px-8">
           {successMessage ? (
-            <div className="mb-5 flex items-center gap-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-700">
+            <div className="mb-5 flex items-center gap-3 rounded-xl border border-emerald-400/35 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-500/25 dark:bg-emerald-500/10 dark:text-emerald-300">
               <CheckCircle2 className="h-4 w-4" />
               <span>{successMessage}</span>
             </div>

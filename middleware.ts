@@ -5,12 +5,6 @@ export function middleware(request: NextRequest) {
   const token = request.cookies.get('kanban_token')?.value
   const { pathname } = request.nextUrl
 
-  // Public routes that don't require authentication
-  const publicPaths = ['/', '/login', '/register']
-
-  // Check if current path is public
-  const isPublicPath = publicPaths.includes(pathname)
-
   // Private routes that require authentication
   const isPrivatePath = pathname.startsWith('/dashboard') ||
                        pathname.startsWith('/projects') ||

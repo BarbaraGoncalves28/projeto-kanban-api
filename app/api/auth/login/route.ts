@@ -1,10 +1,23 @@
 import { NextResponse } from "next/server";
 import { authService } from "@/lib/services";
+import type { AuthResponse } from "@/lib/types";
 import { loginSchema } from "@/lib/validators";
 import { buildAuthCookie } from "@/lib/auth-server";
 
-function extractToken(data: any) {
+type AuthResponseWithData = AuthResponse & {
+  data?: AuthResponse;
+};
+
+function extractToken(data: AuthResponseWithData) {
   return data?.token ?? data?.access_token ?? data?.data?.token ?? data?.data?.access_token;
+}
+
+function getErrorMessage(error: unknown) {
+  if (error instanceof Error && error.message.trim()) {
+    return error.message;
+  }
+
+  return "Login failed";
 }
 
 export async function POST(request: Request) {
@@ -28,8 +41,8 @@ export async function POST(request: Request) {
     nextResponse.cookies.set(cookieConfig.name, cookieConfig.value, cookieConfig.options);
 
     return nextResponse;
-  } catch (error: any) {
-    const message = error?.message ?? "Login failed";
+  } catch (error) {
+    const message = getErrorMessage(error);
     return NextResponse.json({ message }, { status: 422 });
   }
 }

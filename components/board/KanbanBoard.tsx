@@ -15,12 +15,13 @@ import { useEffect, useState } from 'react'
 import { Column } from './Column'
 import { CreateTaskModal } from './CreateTaskModal'
 import { TaskDetailModal } from './TaskDetailModal'
+import { cardSurface, mutedText } from '@/lib/design'
 
 const columns: { id: TaskStatus; title: string }[] = [
   { id: 'pendente', title: 'Pendente' },
   { id: 'em_progresso', title: 'Em Progresso' },
   { id: 'revisao', title: 'Revisão' },
-  { id: 'concluido', title: 'Concluído' },
+  { id: 'concluida', title: 'Concluído' },
 ]
 
 export function KanbanBoard() {
@@ -115,7 +116,7 @@ export function KanbanBoard() {
     return (
       <div className="flex items-center justify-center min-h-96">
         <div className="text-center">
-          <p className="text-destructive mb-4">{tasksError}</p>
+          <p className="mb-4 text-rose-600 dark:text-rose-400">{tasksError}</p>
           <Button
             onClick={() => hasSelectedProject && fetchTasks(selectedProjectId)}
           >
@@ -129,12 +130,12 @@ export function KanbanBoard() {
   if (!hasSelectedProject) {
     return (
       <div className="flex min-h-96 items-center justify-center">
-        <div className="max-w-md rounded-3xl border bg-card p-8 text-center shadow-sm">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+        <div className={`max-w-md ${cardSurface} p-8 text-center`}>
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-sky-500/10 text-sky-700 dark:bg-sky-400/10 dark:text-sky-300">
             <FolderKanban className="h-7 w-7" />
           </div>
           <h2 className="mt-5 text-2xl font-semibold">Selecione um projeto</h2>
-          <p className="mt-2 text-sm text-muted-foreground">
+          <p className={`mt-2 text-sm ${mutedText}`}>
             Abra o board a partir de um card de projeto para carregar as tarefas
             pela rota correta da API.
           </p>
@@ -152,7 +153,7 @@ export function KanbanBoard() {
       <div className="mb-8 flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold">Tarefas</h2>
-          <p className="text-muted-foreground mt-1">
+          <p className={`mt-1 ${mutedText}`}>
             {tasks.length} total tarefas
           </p>
         </div>

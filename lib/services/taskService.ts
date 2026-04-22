@@ -6,7 +6,7 @@ const uiToApiStatusCandidates = {
   pendente: ['pendente', 'a_fazer', 'todo'],
   em_progresso: ['em_progresso', 'em_andamento', 'fazendo', 'doing'],
   revisao: ['revisao', 'em_revisao', 'review'],
-  concluido: ['concluido', 'concluida', 'done'],
+  concluida: ['concluido', 'concluida', 'done'],
 } as const
 
 function getPrimaryApiStatus(status: Task['status']) {
@@ -53,7 +53,7 @@ function normalizeTaskStatusFromApi(
     case 'done':
     case 'concluida':
     case 'concluido':
-      return 'concluido'
+      return 'concluida'
     default:
       return 'pendente'
   }

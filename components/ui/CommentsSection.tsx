@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import type { Comment, User } from "@/lib/types";
+import { inputBase, mutedText } from "@/lib/design";
 
 type CommentsSectionProps = {
   comments: Comment[];
@@ -31,28 +32,28 @@ export function CommentsSection({ comments, onAddComment }: CommentsSectionProps
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-slate-900">Comments</h3>
+      <h3 className="text-lg font-semibold text-slate-950 dark:text-slate-100">Comments</h3>
 
       {/* Comments List */}
       <div className="space-y-3 max-h-64 overflow-y-auto">
         {comments.length === 0 ? (
-          <p className="text-sm text-slate-500 italic">No comments yet.</p>
+          <p className={`text-sm italic ${mutedText}`}>No comments yet.</p>
         ) : (
           comments.map((comment) => {
             const authorId = comment.userId ?? comment.user_id;
             const createdAt = comment.createdAt ?? comment.created_at;
 
             return (
-              <div key={comment.id} className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+              <div key={comment.id} className="rounded-2xl border border-slate-200/80 bg-slate-50/80 p-3 dark:border-slate-800 dark:bg-slate-950/60">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-slate-900">
+                <span className="text-sm font-medium text-slate-950 dark:text-slate-100">
                   {comment.user?.name || `User ${authorId ?? "unknown"}`}
                 </span>
-                <span className="text-xs text-slate-500">
+                <span className={`text-xs ${mutedText}`}>
                   {createdAt ? new Date(createdAt).toLocaleString() : "Agora"}
                 </span>
               </div>
-              <p className="text-sm text-slate-700">{comment.message}</p>
+              <p className="text-sm text-slate-700 dark:text-slate-300">{comment.message}</p>
               </div>
             );
           })
@@ -66,7 +67,7 @@ export function CommentsSection({ comments, onAddComment }: CommentsSectionProps
           onChange={(e) => setNewComment(e.target.value)}
           placeholder="Add a comment..."
           rows={3}
-          className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-200 resize-none"
+          className={`${inputBase} resize-none`}
         />
         <div className="flex justify-end">
           <Button

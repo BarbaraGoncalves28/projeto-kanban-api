@@ -3,6 +3,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { Calendar, GripVertical, Tag as TagIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Task } from "@/lib/types";
+import { mutedText } from "@/lib/design";
 
 type TaskCardProps = {
   task: Task;
@@ -36,7 +37,7 @@ export function TaskCard({ task, onViewDetails }: TaskCardProps) {
       ref={setNodeRef}
       style={style}
       className={cn(
-        "group relative rounded-lg border bg-card p-4 shadow-sm transition-all hover:shadow-md cursor-grab active:cursor-grabbing",
+        "group relative cursor-grab rounded-2xl border border-slate-200/75 bg-white/90 p-4 shadow-md shadow-slate-200/50 transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-slate-200/60 active:cursor-grabbing dark:border-slate-800 dark:bg-slate-950/85 dark:shadow-black/20 dark:hover:shadow-black/30",
         isDragging && "opacity-50 rotate-2 shadow-lg"
       )}
     >
@@ -44,21 +45,21 @@ export function TaskCard({ task, onViewDetails }: TaskCardProps) {
       <div
         {...attributes}
         {...listeners}
-        className="absolute left-2 top-2 cursor-grab opacity-0 group-hover:opacity-100 transition-opacity"
+        className="absolute left-2 top-2 cursor-grab opacity-0 transition-opacity group-hover:opacity-100"
       >
-        <GripVertical className="h-4 w-4 text-muted-foreground" />
+        <GripVertical className="h-4 w-4 text-slate-400 dark:text-slate-500" />
       </div>
 
       <div className="pl-6" onClick={(e) => {
               e.stopPropagation();
               onViewDetails?.();
             }}>
-        <h4 className="font-semibold text-foreground mb-2 line-clamp-2">
+        <h4 className="mb-2 line-clamp-2 font-semibold text-slate-950 dark:text-slate-100">
           {task.title.charAt(0).toUpperCase() + task.title.slice(1)}
         </h4>
 
         {task.description && (
-          <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+          <p className={cn("mb-3 line-clamp-2 text-sm", mutedText)}>
             {task.description
     ? task.description.charAt(0).toUpperCase() + task.description.slice(1)
     : ''}
@@ -66,14 +67,14 @@ export function TaskCard({ task, onViewDetails }: TaskCardProps) {
         )}
 
         <div className="flex items-center justify-between mb-3">
-          <span className="text-xs text-muted-foreground">#{task.id}</span>
+          <span className={cn("text-xs", mutedText)}>#{task.id}</span>
           <span className={cn("px-2 py-1 rounded-full text-xs font-medium", priorityVariants[task.priority])}>
             {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
           </span>
         </div>
 
         {task.dueDate && (
-          <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
+          <div className={cn("mb-2 flex items-center gap-1 text-xs", mutedText)}>
             <Calendar className="h-3 w-3" />
             <span>Due {new Date(task.dueDate).toLocaleDateString()}</span>
           </div>
@@ -84,7 +85,7 @@ export function TaskCard({ task, onViewDetails }: TaskCardProps) {
             {task.taskTags.slice(0, 3).map((tag) => (
               <span
                 key={tag.id}
-                className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-muted text-muted-foreground"
+                className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-300"
                 style={{
                   backgroundColor: tag.color ? `${tag.color}20` : undefined,
                   color: tag.color || undefined
@@ -95,7 +96,7 @@ export function TaskCard({ task, onViewDetails }: TaskCardProps) {
               </span>
             ))}
             {task.taskTags.length > 3 && (
-              <span className="text-xs text-muted-foreground">
+              <span className={cn("text-xs", mutedText)}>
                 +{task.taskTags.length - 3} mais
               </span>
             )}
@@ -108,7 +109,7 @@ export function TaskCard({ task, onViewDetails }: TaskCardProps) {
               e.stopPropagation();
               onViewDetails();
             }}
-            className="text-xs text-primary hover:text-primary/80 underline-offset-4 hover:underline"
+            className="text-xs text-sky-700 underline-offset-4 hover:underline dark:text-sky-300"
           >
             Ver detalhes
           </button>

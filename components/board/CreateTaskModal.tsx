@@ -8,7 +8,8 @@ import { projectService, tagService, userService } from "@/lib/services";
 import { useStore } from "@/lib/store";
 import { Button } from "@/components/ui/Button";
 import { TextField } from "@/components/ui/TextField";
-import type { Project, Tag, User } from "@/lib/types";
+import type { Tag, User } from "@/lib/types";
+import { inputBase, modalOverlay, modalPanel, mutedText } from "@/lib/design";
 
 const createTaskSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -31,8 +32,7 @@ type CreateTaskModalProps = {
 };
 
 export function CreateTaskModal({ isOpen, onClose, onTaskCreated, projectId }: CreateTaskModalProps) {
-  const { createTask, user } = useStore();
-  const [projects, setProjects] = useState<Project[]>([]);
+  const { createTask } = useStore();
   const [tags, setTags] = useState<Tag[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(true);
@@ -62,13 +62,12 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated, projectId }: C
     if (isOpen) {
       const fetchData = async () => {
         try {
-          const [projectsData, tagsData, usersData] = await Promise.all([
+          const [, tagsData, usersData] = await Promise.all([
             projectService.getProjects(),
             tagService.getTags(),
             userService.getUsers(),
           ]);
           setUsers(usersData);
-          setProjects(projectsData);
           setTags(tagsData);
         } catch (error) {
           console.error("Failed to fetch data:", error);
@@ -115,14 +114,14 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated, projectId }: C
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <div className={modalOverlay}>
+      <div className={`${modalPanel} max-h-[90vh] max-w-2xl overflow-y-auto`}>
         <div className="p-8">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-semibold">Criar nova tarefa</h2>
             <button
               onClick={onClose}
-              className="text-slate-400 hover:text-slate-600 cursor-pointer"
+              className="cursor-pointer text-slate-400 transition hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"
             >
               ✕
             </button>
@@ -130,18 +129,18 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated, projectId }: C
 
           {isLoadingData ? (
             <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900"></div>
+              <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-sky-600 dark:border-sky-400"></div>
             </div>
           ) : (
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               <div className="w-full">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                  <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
                     Prioridade:
                   </label>
                   <select
                     {...register("priority")}
-                    className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-200 cursor-pointer"
+                    className={`${inputBase} cursor-pointer`}
                   >
                     <option value="baixa">Baixa</option>
                     <option value="media">Média</option>
@@ -158,13 +157,13 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated, projectId }: C
               />
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
                   Descrição:
                 </label>
                 <textarea
                   {...register("description")}
                   rows={3}
-                  className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-200 resize-none"
+                  className={`${inputBase} resize-none`}
                   placeholder="Task description..."
                 />
               </div>
@@ -183,17 +182,17 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated, projectId }: C
                />
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-3">
+                <label className="mb-3 block text-sm font-medium text-slate-700 dark:text-slate-200">
                   Tags
                 </label>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                   {tags.map((tag) => (
-                    <label key={tag.id} className="flex items-center space-x-2 cursor-pointer">
+                    <label key={tag.id} className="flex cursor-pointer items-center space-x-2 rounded-2xl border border-slate-200/70 bg-slate-50/80 px-3 py-2 dark:border-slate-800 dark:bg-slate-950/50">
                       <input
                         type="checkbox"
                         checked={selectedTags?.includes(tag.id) || false}
                         onChange={() => handleTagToggle(tag.id)}
-                        className="cursor-pointer rounded border-slate-300 text-slate-900 focus:ring-slate-200"
+                        className="cursor-pointer rounded border-slate-300 text-sky-600 focus:ring-sky-200 dark:border-slate-700 dark:bg-slate-900 dark:text-sky-400 dark:focus:ring-sky-500/20"
                       />
                       <span
                         className="text-sm px-2 py-1 rounded-full"
@@ -209,21 +208,21 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated, projectId }: C
                 </div>
               </div>
 <div className="relative">
-  <label className="block text-sm font-medium text-slate-700 mb-2">
+  <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
     Usuários atribuídos
   </label>
 
   {/* Botão do select */}
   <div
     onClick={() => setIsUserDropdownOpen((prev) => !prev)}
-    className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm cursor-pointer"
+    className={`${inputBase} cursor-pointer`}
   >
     {selectedUsers.length > 0 ? "Adicione mais usuários" : "Selecione usuários"}
   </div>
 
   {/* Dropdown */}
   {isUserDropdownOpen && (
-    <div className="absolute z-10 mt-2 w-full rounded-xl border border-slate-200 bg-white shadow-lg max-h-48 overflow-y-auto">
+    <div className="absolute z-10 mt-2 max-h-48 w-full overflow-y-auto rounded-2xl border border-slate-200/80 bg-white/95 shadow-lg shadow-slate-900/10 dark:border-slate-700 dark:bg-slate-900/95 dark:shadow-black/30">
       {users.map((user) => {
         const isSelected = selectedUsers.includes(user.id);
 
@@ -239,8 +238,8 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated, projectId }: C
 
               setIsUserDropdownOpen(false);
             }}
-            className={`px-4 py-2 cursor-pointer hover:bg-slate-100 ${
-              isSelected ? "bg-slate-100 font-medium" : ""
+            className={`cursor-pointer px-4 py-2 transition hover:bg-slate-100 dark:hover:bg-slate-800 ${
+              isSelected ? "bg-slate-100 font-medium dark:bg-slate-800" : ""
             }`}
           >
             {user.name}
@@ -260,7 +259,7 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated, projectId }: C
       .map((u) => (
         <div
           key={u.id}
-          className="flex items-center gap-2 bg-slate-100 text-slate-800 px-3 py-1 rounded-full text-sm"
+          className="flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-800 dark:bg-slate-800 dark:text-slate-200"
         >
           <span>{u.name}</span>
           <button
@@ -269,7 +268,7 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated, projectId }: C
               const updated = selectedUsers.filter((id) => id !== u.id);
               setValue("assignedUsers", updated);
             }}
-            className="text-slate-500 hover:text-red-500"
+            className="text-slate-500 transition hover:text-rose-500 dark:text-slate-400"
           >
             ✕
           </button>
@@ -283,7 +282,7 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated, projectId }: C
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-6 py-3 text-sm font-medium text-slate-700 hover:text-slate-900 cursor-pointer"
+                  className={`cursor-pointer px-6 py-3 text-sm font-medium ${mutedText} transition hover:text-slate-950 dark:hover:text-slate-100`}
                 >
                   Cancelar
                 </button>

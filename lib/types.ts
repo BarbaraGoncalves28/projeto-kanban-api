@@ -17,7 +17,7 @@ export interface AuthResponse {
 }
 
 // Kanban System Types
-export type TaskStatus = "pendente" | "em_progresso" | "revisao" | "concluido";
+export type TaskStatus = "pendente" | "em_progresso" | "revisao" | "concluida";
 
 export type TaskPriority = "baixa" | "media" | "alta" | "urgente";
 

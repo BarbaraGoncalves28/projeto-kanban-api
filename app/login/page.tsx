@@ -47,7 +47,7 @@ export default function LoginPage() {
       setUser(data.user);
 
       router.push("/dashboard");
-    } catch (error) {
+    } catch {
       setServerError("Unable to login. Please check your connection.");
     } finally {
       setIsLoading(false);
@@ -56,18 +56,19 @@ export default function LoginPage() {
 
   return (
     <AuthPageShell
-      title="Sign in to Kanbam"
-      description="Enter your credentials to access your dashboard and manage projects."
+      className="cursor-pointer"
+      title="Faça login"
+      description="Insira suas credenciais para acessar seu painel de controle e gerenciar projetos."
       actionHref="/register"
-      actionLabel="Create an account"
+      actionLabel="Crie uma conta"
     >
       <form className="flex flex-col gap-5" onSubmit={handleSubmit(onSubmit)}>
-        <TextField label="Email" id="email" type="email" autoComplete="email" {...register("email")} error={errors.email?.message} />
-        <TextField label="Password" id="password" type="password" autoComplete="current-password" {...register("password")} error={errors.password?.message} />
+        <TextField label="Email:" id="email" type="email" autoComplete="email" {...register("email")} error={errors.email?.message} />
+        <TextField label="Senha:" id="password" type="password" autoComplete="current-password" {...register("password")} error={errors.password?.message} />
 
         {serverError ? <FormError message={serverError} /> : null}
 
-        <Button loading={isLoading}>Continue</Button>
+        <Button className="cursor-pointer" loading={isLoading}>Entrar</Button>
       </form>
     </AuthPageShell>
   );

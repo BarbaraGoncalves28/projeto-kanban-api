@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { TextField } from "@/components/ui/TextField";
 import type { CreateProjectPayload } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { inputBase } from "@/lib/design";
 
 const projectFormSchema = z.object({
   name: z.string().trim().min(1, "O nome do projeto é obrigatório."),
@@ -91,18 +92,19 @@ export function ProjectForm({
           placeholder="Descreva o objetivo, contexto ou escopo do projeto."
           disabled={isSubmitting}
           className={cn(
-            "flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
-            errors.description && "border-destructive focus-visible:ring-destructive"
+            inputBase,
+            "min-h-28 resize-none",
+            errors.description && "border-rose-400 focus:border-rose-400 focus:ring-rose-100 dark:border-rose-500 dark:focus:ring-rose-500/15"
           )}
           {...register("description")}
         />
         {errors.description ? (
-          <p className="text-sm text-destructive">{errors.description.message}</p>
+          <p className="text-sm text-rose-600 dark:text-rose-400">{errors.description.message}</p>
         ) : null}
       </div>
 
       {errorMessage ? (
-        <div className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+        <div className="rounded-xl border border-rose-300/60 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-300">
           {errorMessage}
         </div>
       ) : null}

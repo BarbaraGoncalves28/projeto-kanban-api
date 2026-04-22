@@ -4,6 +4,7 @@ import { projectService, taskService, userService, tagService } from '@/lib/serv
 import { useStore } from '@/lib/store'
 import type { Task, User, Tag } from '@/lib/types'
 import { useEffect, useState } from 'react'
+import { inputBase, modalOverlay, modalPanel, mutedText } from '@/lib/design'
 
 type TaskDetailModalProps = {
   task: Task | null
@@ -124,53 +125,69 @@ export function TaskDetailModal({
 
   // 🟢 UPDATE TASK
   async function handleUpdate() {
-    if (!task) return
+  if (!task) return
 
-    try {
-      await taskService.updateTask({
-        id: task.id,
-        title: formData.title,
-        description: formData.description,
-        status: formData.status,
-        priority: formData.priority,
-        due_date: formData.due_date,
-        estimated_minutes: formData.estimated_minutes,
-        project_id: Number(formData.project_id ?? projectId),
+  try {
+    const validStatus: Task['status'][] = [
+      'pendente',
+      'em_progresso',
+      'revisao',
+      'concluida',
+    ]
 
-        // 🔥 AQUI ESTÁ A CORREÇÃO
-        assignees:
+    const status =
+      formData.status && validStatus.includes(formData.status)
+        ? formData.status
+        : task.status
+
+    const payload = {
+      id: task.id,
+      title: formData.title ?? task.title,
+      description: formData.description ?? task.description,
+      status,
+      priority: formData.priority ?? task.priority,
+      due_date: formData.due_date ?? task.due_date,
+      estimated_minutes:
+        formData.estimated_minutes ?? task.estimated_minutes,
+
+      project_id: task.project_id,
+
+      assignees:
         formData.assignees ??
-        task.assignees?.map((user) => user.id),
-        tags: formData.tags,
-      })
+        task.assignees?.map((user) => user.id) ??
+        [],
 
-      // 🔥 atualiza o store
-      useStore.getState().updateTask(task.id, {
-  title: formData.title ?? task.title,
-  description: formData.description ?? task.description,
-  status: formData.status ?? task.status,
-  priority: formData.priority ?? task.priority,
-  due_date: formData.due_date ?? task.due_date,
-  project_id: formData.project_id ?? task.project_id,
-  estimated_minutes:
-    formData.estimated_minutes ?? task.estimated_minutes,
-
-  // ✅ mantém formato correto (User[])
-  assignees: users.filter(user =>
-  formData.assignees?.includes(user.id)
-),
-
-tags: tags.filter(tag =>
-  formData.tags?.includes(tag.id)
-),
-})
-
-      setIsEditing(false)
-      onClose()
-    } catch (err) {
-      console.error('Erro ao atualizar tarefa:', err)
+      tags: formData.tags ?? task.tags?.map(t => t.id) ?? [],
     }
+
+    console.log('PAYLOAD:', payload)
+
+    await taskService.updateTask(payload)
+
+    useStore.getState().updateTask(task.id, {
+      title: payload.title,
+      description: payload.description,
+      status: payload.status,
+      priority: payload.priority,
+      due_date: payload.due_date,
+      estimated_minutes: payload.estimated_minutes,
+
+      assignees: users.filter(user =>
+        payload.assignees.includes(user.id)
+      ),
+
+      tags: tags.filter(tag =>
+        payload.tags.includes(tag.id)
+      ),
+    })
+
+    setIsEditing(false)
+    onClose()
+  } catch (err: any) {
+    console.error('Erro ao atualizar tarefa:', err)
+    console.error('Resposta do backend:', err?.response?.data)
   }
+}
 
   // 🔴 DELETE TASK
   async function confirmDelete() {
@@ -193,15 +210,15 @@ tags: tags.filter(tag =>
 
   return (
     <>
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto relative">
+    <div className={modalOverlay}>
+      <div className={`${modalPanel} relative max-h-[90vh] max-w-4xl overflow-y-auto`}>
 
         <button
               onClick={() => {setIsEditing(false)
               setShowDeleteModal(false)
               onClose()
               }}
-              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 text-xl cursor-pointer"
+              className="absolute right-4 top-4 cursor-pointer text-xl text-slate-400 transition hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"
             >
               ✕
             </button>
@@ -210,14 +227,14 @@ tags: tags.filter(tag =>
           <div className="flex items-center justify-between mb-6">
             {isEditing ? (
               <input
-                className="text-2xl font-semibold border p-2 w-full"
+                className={`${inputBase} w-full text-2xl font-semibold`}
                 value={formData.title || ''}
                 onChange={(e) =>
                   setFormData({ ...formData, title: e.target.value })
                 }
               />
             ) : (
-              <h2 className="text-2xl font-semibold text-slate-900">
+              <h2 className="text-2xl font-semibold text-slate-950 dark:text-slate-100">
                 {task.title}
               </h2>
             )}
@@ -225,19 +242,19 @@ tags: tags.filter(tag =>
 
           <div className="space-y-6">
             <div>
-              <h3 className="text-lg font-semibold text-slate-900 mb-3">
+              <h3 className="mb-3 text-lg font-semibold text-slate-950 dark:text-slate-100">
                 Descrição:
               </h3>
               {isEditing ? (
                 <textarea
-                  className="w-full border p-2"
+                  className={`${inputBase} min-h-32 resize-none`}
                   value={formData.description || ''}
                   onChange={(e) =>
                     setFormData({ ...formData, description: e.target.value })
                   }
                 />
               ) : (
-                <p className="text-slate-700">
+                <p className="text-slate-700 dark:text-slate-300">
                   {task.description
     ? task.description.charAt(0).toUpperCase() + task.description.slice(1)
     : 'No description provided.'}
@@ -247,31 +264,31 @@ tags: tags.filter(tag =>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <span className="text-sm font-medium text-slate-500">
+                <span className={`text-sm font-medium ${mutedText}`}>
                   Status:
                 </span>
 
                 {isEditing ? (
-                  <select className="border p-2 w-full cursor-pointer" value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value as Task['status'],})}>
+                  <select className={`${inputBase} mt-2 cursor-pointer`} value={formData.status ?? task.status} onChange={(e) => setFormData({ ...formData, status: e.target.value as Task['status'],})}>
                     <option value="pendente">Pendente</option>
                     <option value="em_progresso">Em progresso</option>
                     <option value="revisao">Revisão</option>
-                    <option value="concluido">Concluído</option>
+                    <option value="concluida">Concluído</option>
                   </select>
                 ) : (
-                <p className="text-slate-900 capitalize">
+                <p className="capitalize text-slate-950 dark:text-slate-100">
                   {task.status.replace('_', ' ')}
                 </p>
                 )}
               </div>
               <div>
-                <span className="text-sm font-medium text-slate-500">
+                <span className={`text-sm font-medium ${mutedText}`}>
                   Prioridade:
                 </span>
                 {isEditing ? (
                   <select
-                    className="border p-2 w-full cursor-pointer"
-                    value={formData.priority}
+                    className={`${inputBase} mt-2 cursor-pointer`}
+                    value={formData.priority ?? task.priority}
                     onChange={(e) =>
                       setFormData({
                         ...formData,
@@ -288,12 +305,12 @@ tags: tags.filter(tag =>
                   <p
                     className={`text-sm font-medium px-2 py-1 rounded-full inline-block ${
                       task.priority === 'urgente'
-                        ? 'bg-red-100 text-red-700'
+                        ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
                         : task.priority === 'alta'
-                          ? 'bg-orange-100 text-orange-700'
+                          ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300'
                           : task.priority === 'media'
-                            ? 'bg-yellow-100 text-yellow-700'
-                            : 'bg-green-100 text-green-700'
+                            ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300'
+                            : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
                     }`}
                   >
                     {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
@@ -301,23 +318,23 @@ tags: tags.filter(tag =>
                 )}
               </div>
               <div>
-                <span className="text-sm font-medium text-slate-500">
+                <span className={`text-sm font-medium ${mutedText}`}>
                   Projeto:
                 </span>
 
-                  <p className="text-slate-900">
+                  <p className="text-slate-950 dark:text-slate-100">
                     {resolvedProjectName ?? projectName}
                   </p>
               </div>
               <div>
-                <span className="text-sm font-medium text-slate-500">
+                <span className={`text-sm font-medium ${mutedText}`}>
                   Data de criação:
                 </span>
 
                 {isEditing ? (
                   <input
                     type="date"
-                    className="border p-2 w-full cursor-pointer"
+                    className={`${inputBase} mt-2 cursor-pointer`}
                     value={
                       formData.due_date
                         ? new Date(formData.due_date)
@@ -333,7 +350,7 @@ tags: tags.filter(tag =>
                     }
                   />
                 ) : (
-                  <p className="text-slate-900">
+                  <p className="text-slate-950 dark:text-slate-100">
                     {dueDate
                       ? new Date(dueDate).toLocaleDateString()
                       : 'No due date'}
@@ -342,10 +359,10 @@ tags: tags.filter(tag =>
               </div>
 
                 <div>
-  <span className="text-sm font-medium text-slate-500">
+  <span className={`text-sm font-medium ${mutedText}`}>
     Criador(a):
   </span>
-  <p className="text-slate-900">
+  <p className="text-slate-950 dark:text-slate-100">
     {task.creator?.name
     ? task.creator.name.charAt(0).toUpperCase() + task.creator.name.slice(1)
     : 'Unknown'}
@@ -353,14 +370,14 @@ tags: tags.filter(tag =>
 </div>
 
               <div>
-  <span className="text-sm font-medium text-slate-500">
+  <span className={`text-sm font-medium ${mutedText}`}>
     Duração (minutos):
   </span>
 
   {isEditing ? (
     <input
       type="number"
-      className="border p-2 w-full"
+      className={`${inputBase} mt-2`}
       value={formData.estimated_minutes ?? ''}
       onChange={(e) =>
         setFormData({
@@ -370,7 +387,7 @@ tags: tags.filter(tag =>
       }
     />
   ) : (
-    <p className="text-slate-900">
+    <p className="text-slate-950 dark:text-slate-100">
       {task.estimated_minutes
         ? `${task.estimated_minutes} min`
         : 'No estimate'}
@@ -381,7 +398,7 @@ tags: tags.filter(tag =>
 
             {taskTags && taskTags.length > 0 && (
               <div>
-                <span className="text-sm font-medium text-slate-500 block mb-2">
+                <span className={`mb-2 block text-sm font-medium ${mutedText}`}>
                   Tags:
                 </span>
 
@@ -390,7 +407,7 @@ tags: tags.filter(tag =>
     <div className="relative">
   <div
     onClick={() => setIsTagDropdownOpen(prev => !prev)}
-    className="w-full border p-2 cursor-pointer"
+    className={`${inputBase} cursor-pointer`}
   >
     {formData.tags && formData.tags.length > 0
       ? "Adicionar mais tags"
@@ -398,7 +415,7 @@ tags: tags.filter(tag =>
   </div>
 
   {isTagDropdownOpen && (
-    <div className="absolute z-10 mt-2 w-full bg-white border rounded shadow max-h-48 overflow-y-auto">
+    <div className="absolute z-10 mt-2 max-h-48 w-full overflow-y-auto rounded-2xl border border-slate-200/80 bg-white/95 shadow-lg shadow-slate-900/10 dark:border-slate-700 dark:bg-slate-900/95 dark:shadow-black/30">
       {tags.map(tag => {
         const isSelected = formData.tags?.includes(tag.id)
 
@@ -413,8 +430,8 @@ tags: tags.filter(tag =>
               setFormData({ ...formData, tags: updated })
               setIsTagDropdownOpen(false)
             }}
-            className={`px-4 py-2 cursor-pointer hover:bg-gray-100 ${
-              isSelected ? "bg-gray-100 font-medium" : ""
+            className={`cursor-pointer px-4 py-2 transition hover:bg-slate-100 dark:hover:bg-slate-800 ${
+              isSelected ? "bg-slate-100 font-medium dark:bg-slate-800" : ""
             }`}
           >
             {tag.name}
@@ -445,7 +462,7 @@ tags: tags.filter(tag =>
                 const updated = formData.tags?.filter(id => id !== tag.id)
                 setFormData({ ...formData, tags: updated })
               }}
-              className="hover:text-red-500 cursor-pointer"
+              className="cursor-pointer transition hover:text-rose-500"
             >
               ✕
             </button>
@@ -477,14 +494,14 @@ tags: tags.filter(tag =>
             )}
 
             <div>
-              <span className="text-sm font-medium text-slate-500 cursor-pointer">
+              <span className={`cursor-pointer text-sm font-medium ${mutedText}`}>
                 Usuários atribuídos:
               </span>
                {isEditing ? (
     <div className="relative">
   <div
     onClick={() => setIsUserDropdownOpen(prev => !prev)}
-    className="w-full border p-2 cursor-pointer"
+    className={`${inputBase} cursor-pointer`}
   >
     {formData.assignees && formData.assignees.length > 0
       ? "Adicionar mais usuários"
@@ -492,7 +509,7 @@ tags: tags.filter(tag =>
   </div>
 
   {isUserDropdownOpen && (
-    <div className="absolute z-10 mt-2 w-full bg-white border rounded shadow max-h-48 overflow-y-auto">
+    <div className="absolute z-10 mt-2 max-h-48 w-full overflow-y-auto rounded-2xl border border-slate-200/80 bg-white/95 shadow-lg shadow-slate-900/10 dark:border-slate-700 dark:bg-slate-900/95 dark:shadow-black/30">
       {users.map(user => {
         const isSelected = formData.assignees?.includes(user.id)
 
@@ -507,8 +524,8 @@ tags: tags.filter(tag =>
               setFormData({ ...formData, assignees: updated })
               setIsUserDropdownOpen(false)
             }}
-            className={`px-4 py-2 cursor-pointer hover:bg-gray-100 ${
-              isSelected ? "bg-gray-100 font-medium" : ""
+            className={`cursor-pointer px-4 py-2 transition hover:bg-slate-100 dark:hover:bg-slate-800 ${
+              isSelected ? "bg-slate-100 font-medium dark:bg-slate-800" : ""
             }`}
           >
             {user.name}
@@ -526,7 +543,7 @@ tags: tags.filter(tag =>
         .map(user => (
           <div
             key={user.id}
-            className="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full text-sm"
+            className="flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-800 dark:bg-slate-800 dark:text-slate-200"
           >
             <span>{user.name}</span>
             <button
@@ -535,7 +552,7 @@ tags: tags.filter(tag =>
                 const updated = formData.assignees?.filter(id => id !== user.id)
                 setFormData({ ...formData, assignees: updated })
               }}
-              className="hover:text-red-500 cursor-pointer"
+              className="cursor-pointer transition hover:text-rose-500"
             >
               ✕
             </button>
@@ -545,7 +562,7 @@ tags: tags.filter(tag =>
   )}
 </div>
   ) : (
-              <p className="text-slate-900">
+              <p className="text-slate-950 dark:text-slate-100">
                 {task.assignees && task.assignees.length > 0
                   ? task.assignees.map((user) => user.name).join(', ')
                   : 'No users assigned'}
@@ -558,14 +575,14 @@ tags: tags.filter(tag =>
                 <>
                   <button
                     onClick={handleUpdate}
-                    className="bg-blue-600 text-white px-4 py-2 rounded cursor-pointer"
+                    className="cursor-pointer rounded-xl bg-sky-600 px-4 py-2 text-white transition hover:bg-sky-500 dark:bg-sky-500 dark:hover:bg-sky-400"
                   >
                     Salvar
                   </button>
 
                   <button
                     onClick={() => setIsEditing(false)}
-                    className="bg-red-600 text-white px-4 py-2 rounded cursor-pointer"
+                    className="cursor-pointer rounded-xl bg-rose-600 px-4 py-2 text-white transition hover:bg-rose-500 dark:bg-rose-500 dark:hover:bg-rose-400"
                   >
                     Cancelar
                   </button>
@@ -574,14 +591,14 @@ tags: tags.filter(tag =>
                 <>
                   <button
                     onClick={handleStartEdit}
-                    className="bg-blue-500 text-white px-4 py-2 rounded cursor-pointer"
+                    className="cursor-pointer rounded-xl bg-sky-600 px-4 py-2 text-white transition hover:bg-sky-500 dark:bg-sky-500 dark:hover:bg-sky-400"
                   >
                     Editar
                   </button>
 
                   <button
                     onClick={() => setShowDeleteModal(true)}
-                    className="bg-red-600 text-white px-4 py-2 rounded cursor-pointer"
+                    className="cursor-pointer rounded-xl bg-rose-600 px-4 py-2 text-white transition hover:bg-rose-500 dark:bg-rose-500 dark:hover:bg-rose-400"
                   >
                     Deletar
                   </button>
@@ -594,20 +611,20 @@ tags: tags.filter(tag =>
 
       {showDeleteModal && (
   <div
-    className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+    className={modalOverlay}
     onClick={() => setShowDeleteModal(false)}
   >
     <div
-      className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl"
+      className={`${modalPanel} max-w-md p-6`}
       onClick={(e) => e.stopPropagation()}
     >
       <h3 className="text-lg font-semibold mb-2">
         Deletar tarefa
       </h3>
 
-      <p className="text-sm text-muted-foreground mb-6">
+      <p className={`mb-6 text-sm ${mutedText}`}>
         Tem certeza que deseja deletar{" "}
-        <span className="font-medium text-foreground">
+        <span className="font-medium text-slate-950 dark:text-slate-100">
           {task.title}
         </span>
         ?
@@ -617,7 +634,7 @@ tags: tags.filter(tag =>
         <button
           onClick={() => setShowDeleteModal(false)}
           disabled={isDeleting}
-          className="px-4 py-2 text-sm text-slate-600 hover:text-slate-900 disabled:opacity-50 cursor-pointer"
+          className="cursor-pointer px-4 py-2 text-sm text-slate-600 transition hover:text-slate-950 disabled:opacity-50 dark:text-slate-400 dark:hover:text-slate-100"
         >
           Cancelar
         </button>
@@ -625,7 +642,7 @@ tags: tags.filter(tag =>
         <button
           onClick={confirmDelete}
           disabled={isDeleting}
-          className="bg-red-600 text-white px-4 py-2 rounded cursor-pointer"
+          className="cursor-pointer rounded-xl bg-rose-600 px-4 py-2 text-white transition hover:bg-rose-500 dark:bg-rose-500 dark:hover:bg-rose-400"
         >
           {isDeleting ? "Deletando..." : "Deletar"}
         </button>

@@ -1,3 +1,4 @@
+import { cardSurface } from "@/lib/design";
 import { cn } from "@/lib/utils";
 
 interface SkeletonProps {
@@ -7,14 +8,14 @@ interface SkeletonProps {
 export function Skeleton({ className }: SkeletonProps) {
   return (
     <div
-      className={cn("animate-pulse rounded-md bg-muted", className)}
+      className={cn("animate-pulse rounded-md bg-slate-200/80 dark:bg-slate-800", className)}
     />
   );
 }
 
 export function SkeletonCard() {
   return (
-    <div className="rounded-lg border bg-card p-6 shadow-sm">
+    <div className={cn(cardSurface, "rounded-2xl p-6")}>
       <div className="space-y-3">
         <Skeleton className="h-4 w-3/4" />
         <Skeleton className="h-4 w-1/2" />

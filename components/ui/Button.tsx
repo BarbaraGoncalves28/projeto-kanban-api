@@ -1,6 +1,7 @@
 import type { ButtonHTMLAttributes } from "react";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { focusRing } from "@/lib/design";
 
 type ButtonVariant = "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
 type ButtonSize = "default" | "sm" | "lg" | "icon";
@@ -12,12 +13,17 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 };
 
 const buttonVariants = {
-  default: "bg-primary text-primary-foreground hover:bg-primary/90",
-  destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-  outline: "border border-border bg-background hover:bg-accent hover:text-accent-foreground",
-  secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-  ghost: "hover:bg-accent hover:text-accent-foreground",
-  link: "text-primary underline-offset-4 hover:underline",
+  default:
+    "bg-sky-600 text-white shadow-sm shadow-sky-600/20 hover:bg-sky-500 dark:bg-sky-500 dark:hover:bg-sky-400",
+  destructive:
+    "bg-rose-600 text-white shadow-sm shadow-rose-600/20 hover:bg-rose-500 dark:bg-rose-500 dark:hover:bg-rose-400",
+  outline:
+    "border border-slate-200 bg-white/80 text-slate-700 shadow-sm hover:bg-slate-100 hover:text-slate-950 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-white",
+  secondary:
+    "bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700",
+  ghost:
+    "text-slate-600 hover:bg-slate-100 hover:text-slate-950 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white",
+  link: "text-sky-700 underline-offset-4 hover:underline dark:text-sky-300",
 };
 
 const buttonSizes = {
@@ -39,7 +45,8 @@ export function Button({
   return (
     <button
       className={cn(
-        "inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+        "inline-flex items-center justify-center rounded-xl text-sm font-medium transition-colors disabled:pointer-events-none disabled:opacity-50",
+        focusRing,
         buttonVariants[variant],
         buttonSizes[size],
         className
