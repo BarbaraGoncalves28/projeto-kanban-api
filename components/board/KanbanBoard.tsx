@@ -151,14 +151,14 @@ export function KanbanBoard() {
     >
       <div className="mb-8 flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold">Tasks</h2>
+          <h2 className="text-2xl font-bold">Tarefas</h2>
           <p className="text-muted-foreground mt-1">
-            {tasks.length} total tasks
+            {tasks.length} total tarefas
           </p>
         </div>
-        <Button onClick={() => setIsCreateModalOpen(true)}>
+        <Button className='cursor-pointer' onClick={() => setIsCreateModalOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
-          Create Task
+          Criar tarefa
         </Button>
       </div>
 

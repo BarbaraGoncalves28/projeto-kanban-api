@@ -94,8 +94,8 @@ useEffect(() => {
       <section className="rounded-3xl border bg-card p-8 shadow-sm">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold">Projects</h2>
-          <Button onClick={handleCreateProject} disabled>
-            Create Project
+          <Button className="cursor-pointer" onClick={handleCreateProject} disabled>
+            Criar projeto
           </Button>
         </div>
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -119,9 +119,9 @@ useEffect(() => {
       <>
       <section className="rounded-3xl border bg-card p-8 shadow-sm">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold">Projects</h2>
-          <Button onClick={handleCreateProject}>
-            Create Project
+          <h2 className="text-xl font-semibold">Projetos</h2>
+          <Button className="cursor-pointer" onClick={handleCreateProject}>
+            Criar projeto
           </Button>
         </div>
         <div className="mt-6">
@@ -131,7 +131,7 @@ useEffect(() => {
             icon={<RefreshCw className="h-6 w-6" />}
             action={
               <Button onClick={fetchProjects} variant="outline">
-                Try Again
+                Tente novamente
               </Button>
             }
           />
@@ -151,10 +151,10 @@ useEffect(() => {
     <>
       <section className="rounded-3xl border bg-card p-8 shadow-sm">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold">Projects</h2>
-          <Button onClick={handleCreateProject}>
+          <h2 className="text-xl font-semibold">Projetos</h2>
+          <Button className="cursor-pointer" onClick={handleCreateProject}>
             <FolderPlus className="mr-2 h-4 w-4" />
-            Create Project
+            Criar projeto
           </Button>
         </div>
 
@@ -173,7 +173,7 @@ useEffect(() => {
               icon={<FolderPlus className="h-6 w-6" />}
               action={
                 <Button onClick={handleCreateProject}>
-                  Create Your First Project
+                  Crie seu primeiro projeto
                 </Button>
               }
             />
@@ -206,7 +206,7 @@ useEffect(() => {
       <p className="text-sm text-muted-foreground mb-6">
         Tem certeza que deseja deletar{" "}
         <span className="font-medium text-foreground">
-          {projectToDelete.name}
+          {projectToDelete.name.charAt(0).toUpperCase() + projectToDelete.name.slice(1)}
         </span>
         ?
       </p>
@@ -215,12 +215,12 @@ useEffect(() => {
         <button
           onClick={() => setProjectToDelete(null)}
           disabled={deletingId === projectToDelete.id}
-  className="px-4 py-2 text-sm text-slate-600 hover:text-slate-900 disabled:opacity-50"
+  className="px-4 py-2 text-sm text-slate-600 hover:text-slate-900 disabled:opacity-50 cursor-pointer"
         >
           Cancelar
         </button>
 
-        <Button
+        <Button className="cursor-pointer"
           onClick={confirmDeleteProject}
           loading={deletingId === projectToDelete.id}
           disabled={deletingId === projectToDelete.id}

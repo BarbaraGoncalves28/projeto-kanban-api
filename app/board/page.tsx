@@ -36,16 +36,16 @@ export default function BoardPage() {
           <div className="flex items-center gap-4">
             <Link href="/dashboard">
               <Button variant="ghost" size="sm" className="p-2">
-                <ArrowLeft className="h-4 w-4" />
+                <ArrowLeft className="h-4 w-4 cursor-pointer" />
               </Button>
             </Link>
             <div>
               <p className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
                 Kanban Board
               </p>
-              <h1 className="mt-1 text-3xl font-bold tracking-tight">Manage your tasks</h1>
+              <h1 className="mt-1 text-3xl font-bold tracking-tight">Gerencie suas tarefas</h1>
               <p className="mt-2 text-muted-foreground">
-                Drag and drop tasks between columns to update their status.
+                Arraste e solte as tarefas entre as colunas para atualizar o status delas.
               </p>
             </div>
           </div>

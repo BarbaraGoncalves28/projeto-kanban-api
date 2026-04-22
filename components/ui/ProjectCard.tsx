@@ -48,7 +48,7 @@ export function ProjectCard({ project, onEdit, onDelete, isDeleting }: ProjectCa
         }}
         className="absolute top-4 right-4"
       >
-        <MoreVertical className="w-5 h-5 text-muted-foreground" />
+        <MoreVertical className="w-5 h-5 text-muted-foreground cursor-pointer" />
       </button>
 
       {/* DROPDOWN */}
@@ -66,7 +66,7 @@ export function ProjectCard({ project, onEdit, onDelete, isDeleting }: ProjectCa
         onEdit?.(project);
         setIsMenuOpen(false);
       }}
-      className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition"
+      className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition cursor-pointer"
     >
       <Pencil className="w-4 h-4" />
       Editar
@@ -82,7 +82,7 @@ export function ProjectCard({ project, onEdit, onDelete, isDeleting }: ProjectCa
         setIsMenuOpen(false);
       }}
       disabled={isDeleting}
-      className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
+      className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
     >
       <Trash2 className="w-4 h-4" />
       {isDeleting ? "Deletando..." : "Deletar"}
@@ -93,10 +93,12 @@ export function ProjectCard({ project, onEdit, onDelete, isDeleting }: ProjectCa
       <div className="flex items-start justify-between">
         <div className="flex-1 min-w-0">
           <h3 className="text-lg font-semibold text-foreground truncate group-hover:text-primary">
-            {project.name}
+            {project.name.charAt(0).toUpperCase() + project.name.slice(1)}
           </h3>
           <p className="mt-2 text-sm text-muted-foreground line-clamp-2">
-            {project.description || "No description provided."}
+            {project.description
+    ? project.description.charAt(0).toUpperCase() + project.description.slice(1)
+    : "No description provided."}
           </p>
         </div>
       </div>
@@ -105,7 +107,7 @@ export function ProjectCard({ project, onEdit, onDelete, isDeleting }: ProjectCa
         <div className="flex items-center gap-1">
           <Calendar className="h-3 w-3" />
           <span>
-            Created {createdAt ? new Date(createdAt).toLocaleDateString() : "recently"}
+            Criado {createdAt ? new Date(createdAt).toLocaleDateString() : "recently"}
           </span>
         </div>
         <div className="flex items-center gap-1">

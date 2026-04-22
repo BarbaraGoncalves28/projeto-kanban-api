@@ -109,11 +109,11 @@ export function ProjectForm({
 
       <div className="flex justify-end gap-3 pt-2">
         {onCancel ? (
-          <Button type="button" variant="ghost" onClick={onCancel} disabled={isSubmitting}>
+          <Button className="cursor-pointer" type="button" variant="ghost" onClick={onCancel} disabled={isSubmitting}>
             Cancelar
           </Button>
         ) : null}
-        <Button type="submit" loading={isSubmitting}>
+        <Button className="cursor-pointer" type="submit" loading={isSubmitting}>
           {submitLabel}
         </Button>
       </div>

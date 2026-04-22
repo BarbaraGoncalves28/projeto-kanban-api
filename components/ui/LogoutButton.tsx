@@ -19,8 +19,8 @@ export function LogoutButton() {
   }
 
   return (
-    <Button type="button" onClick={handleLogout} loading={isLoading}>
-      Logout
+    <Button className="cursor-pointer" type="button" onClick={handleLogout} loading={isLoading}>
+      Sair
     </Button>
   );
 }

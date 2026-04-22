@@ -34,11 +34,11 @@ export default function DashboardPage() {
         <header className="flex flex-col gap-6 rounded-3xl border bg-card p-8 shadow-sm sm:flex-row sm:items-center sm:justify-between">
           <div className="flex-1">
             <p className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
-              Welcome back
+              Bem-Vindo
             </p>
-            <h1 className="mt-3 text-3xl font-bold tracking-tight">Kanbam dashboard</h1>
+            <h1 className="mt-3 text-3xl font-bold tracking-tight">Kanbam Dashboard</h1>
             <p className="mt-2 text-muted-foreground">
-              Manage your projects and tasks with ease.
+              Gerencie seus projetos e tarefas com facilidade.
             </p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">

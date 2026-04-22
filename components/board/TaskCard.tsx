@@ -54,19 +54,21 @@ export function TaskCard({ task, onViewDetails }: TaskCardProps) {
               onViewDetails?.();
             }}>
         <h4 className="font-semibold text-foreground mb-2 line-clamp-2">
-          {task.title}
+          {task.title.charAt(0).toUpperCase() + task.title.slice(1)}
         </h4>
 
         {task.description && (
           <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-            {task.description}
+            {task.description
+    ? task.description.charAt(0).toUpperCase() + task.description.slice(1)
+    : ''}
           </p>
         )}
 
         <div className="flex items-center justify-between mb-3">
           <span className="text-xs text-muted-foreground">#{task.id}</span>
           <span className={cn("px-2 py-1 rounded-full text-xs font-medium", priorityVariants[task.priority])}>
-            {task.priority}
+            {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
           </span>
         </div>
 
@@ -94,7 +96,7 @@ export function TaskCard({ task, onViewDetails }: TaskCardProps) {
             ))}
             {task.taskTags.length > 3 && (
               <span className="text-xs text-muted-foreground">
-                +{task.taskTags.length - 3} more
+                +{task.taskTags.length - 3} mais
               </span>
             )}
           </div>
@@ -108,7 +110,7 @@ export function TaskCard({ task, onViewDetails }: TaskCardProps) {
             }}
             className="text-xs text-primary hover:text-primary/80 underline-offset-4 hover:underline"
           >
-            View details
+            Ver detalhes
           </button>
         )}
       </div>

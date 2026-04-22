@@ -119,10 +119,10 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated, projectId }: C
       <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-8">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-semibold">Create New Task</h2>
+            <h2 className="text-2xl font-semibold">Criar nova tarefa</h2>
             <button
               onClick={onClose}
-              className="text-slate-400 hover:text-slate-600"
+              className="text-slate-400 hover:text-slate-600 cursor-pointer"
             >
               ✕
             </button>
@@ -137,11 +137,11 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated, projectId }: C
               <div className="w-full">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Priority
+                    Prioridade:
                   </label>
                   <select
                     {...register("priority")}
-                    className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-200"
+                    className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-200 cursor-pointer"
                   >
                     <option value="baixa">Baixa</option>
                     <option value="media">Média</option>
@@ -152,14 +152,14 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated, projectId }: C
               </div>
 
               <TextField
-                label="Title"
+                label="Título:"
                 {...register("title")}
                 error={errors.title?.message}
               />
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Description
+                  Descrição:
                 </label>
                 <textarea
                   {...register("description")}
@@ -170,13 +170,14 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated, projectId }: C
               </div>
 
               <TextField
-                label="Due Date"
+              className="cursor-pointer"
+                label="Data de criação:"
                 type="date"
                 {...register("dueDate")}
               />
 
-              <TextField
-                label="Duration (minutes)"
+              <TextField 
+                label="Duração (minutos):"
                 type="number"
                 {...register("estimatedMinutes", { valueAsNumber: true })}
                />
@@ -192,7 +193,7 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated, projectId }: C
                         type="checkbox"
                         checked={selectedTags?.includes(tag.id) || false}
                         onChange={() => handleTagToggle(tag.id)}
-                        className="rounded border-slate-300 text-slate-900 focus:ring-slate-200"
+                        className="cursor-pointer rounded border-slate-300 text-slate-900 focus:ring-slate-200"
                       />
                       <span
                         className="text-sm px-2 py-1 rounded-full"
@@ -209,7 +210,7 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated, projectId }: C
               </div>
 <div className="relative">
   <label className="block text-sm font-medium text-slate-700 mb-2">
-    Assigned Users
+    Usuários atribuídos
   </label>
 
   {/* Botão do select */}
@@ -217,7 +218,7 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated, projectId }: C
     onClick={() => setIsUserDropdownOpen((prev) => !prev)}
     className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm cursor-pointer"
   >
-    {selectedUsers.length > 0 ? "Add more users" : "Select users"}
+    {selectedUsers.length > 0 ? "Adicione mais usuários" : "Selecione usuários"}
   </div>
 
   {/* Dropdown */}
@@ -282,12 +283,12 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated, projectId }: C
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-6 py-3 text-sm font-medium text-slate-700 hover:text-slate-900"
+                  className="px-6 py-3 text-sm font-medium text-slate-700 hover:text-slate-900 cursor-pointer"
                 >
-                  Cancel
+                  Cancelar
                 </button>
-                <Button type="submit" loading={isLoading}>
-                  Create Task
+                <Button className="cursor-pointer" type="submit" loading={isLoading}>
+                  Criar tarefa
                 </Button>
               </div>
             </form>

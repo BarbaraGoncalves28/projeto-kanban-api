@@ -194,8 +194,19 @@ tags: tags.filter(tag =>
   return (
     <>
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-8">
+      <div className="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto relative">
+
+        <button
+              onClick={() => {setIsEditing(false)
+              setShowDeleteModal(false)
+              onClose()
+              }}
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 text-xl cursor-pointer"
+            >
+              ✕
+            </button>
+        <div className="p-8 pt-20">
+          
           <div className="flex items-center justify-between mb-6">
             {isEditing ? (
               <input
@@ -210,21 +221,12 @@ tags: tags.filter(tag =>
                 {task.title}
               </h2>
             )}
-            <button
-              onClick={() => {setIsEditing(false)
-              setShowDeleteModal(false)
-              onClose()
-              }}
-              className="text-slate-400 hover:text-slate-600 text-xl"
-            >
-              ✕
-            </button>
           </div>
 
           <div className="space-y-6">
             <div>
               <h3 className="text-lg font-semibold text-slate-900 mb-3">
-                Description
+                Descrição:
               </h3>
               {isEditing ? (
                 <textarea
@@ -236,7 +238,9 @@ tags: tags.filter(tag =>
                 />
               ) : (
                 <p className="text-slate-700">
-                  {task.description || 'No description provided.'}
+                  {task.description
+    ? task.description.charAt(0).toUpperCase() + task.description.slice(1)
+    : 'No description provided.'}
                 </p>
               )}
             </div>
@@ -244,11 +248,11 @@ tags: tags.filter(tag =>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <span className="text-sm font-medium text-slate-500">
-                  Status
+                  Status:
                 </span>
 
                 {isEditing ? (
-                  <select className="border p-2 w-full" value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value as Task['status'],})}>
+                  <select className="border p-2 w-full cursor-pointer" value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value as Task['status'],})}>
                     <option value="pendente">Pendente</option>
                     <option value="em_progresso">Em progresso</option>
                     <option value="revisao">Revisão</option>
@@ -262,11 +266,11 @@ tags: tags.filter(tag =>
               </div>
               <div>
                 <span className="text-sm font-medium text-slate-500">
-                  Priority
+                  Prioridade:
                 </span>
                 {isEditing ? (
                   <select
-                    className="border p-2 w-full"
+                    className="border p-2 w-full cursor-pointer"
                     value={formData.priority}
                     onChange={(e) =>
                       setFormData({
@@ -292,13 +296,13 @@ tags: tags.filter(tag =>
                             : 'bg-green-100 text-green-700'
                     }`}
                   >
-                    {task.priority}
+                    {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
                   </p>
                 )}
               </div>
               <div>
                 <span className="text-sm font-medium text-slate-500">
-                  Project
+                  Projeto:
                 </span>
 
                   <p className="text-slate-900">
@@ -307,13 +311,13 @@ tags: tags.filter(tag =>
               </div>
               <div>
                 <span className="text-sm font-medium text-slate-500">
-                  Due Date
+                  Data de criação:
                 </span>
 
                 {isEditing ? (
                   <input
                     type="date"
-                    className="border p-2 w-full"
+                    className="border p-2 w-full cursor-pointer"
                     value={
                       formData.due_date
                         ? new Date(formData.due_date)
@@ -339,16 +343,18 @@ tags: tags.filter(tag =>
 
                 <div>
   <span className="text-sm font-medium text-slate-500">
-    Creator
+    Criador(a):
   </span>
   <p className="text-slate-900">
-    {task.creator?.name || 'Unknown'}
+    {task.creator?.name
+    ? task.creator.name.charAt(0).toUpperCase() + task.creator.name.slice(1)
+    : 'Unknown'}
   </p>
 </div>
 
               <div>
   <span className="text-sm font-medium text-slate-500">
-    Duration (minutes)
+    Duração (minutos):
   </span>
 
   {isEditing ? (
@@ -376,7 +382,7 @@ tags: tags.filter(tag =>
             {taskTags && taskTags.length > 0 && (
               <div>
                 <span className="text-sm font-medium text-slate-500 block mb-2">
-                  Tags
+                  Tags:
                 </span>
 
 
@@ -439,7 +445,7 @@ tags: tags.filter(tag =>
                 const updated = formData.tags?.filter(id => id !== tag.id)
                 setFormData({ ...formData, tags: updated })
               }}
-              className="hover:text-red-500"
+              className="hover:text-red-500 cursor-pointer"
             >
               ✕
             </button>
@@ -471,8 +477,8 @@ tags: tags.filter(tag =>
             )}
 
             <div>
-              <span className="text-sm font-medium text-slate-500">
-                Assigned Users
+              <span className="text-sm font-medium text-slate-500 cursor-pointer">
+                Usuários atribuídos:
               </span>
                {isEditing ? (
     <div className="relative">
@@ -482,7 +488,7 @@ tags: tags.filter(tag =>
   >
     {formData.assignees && formData.assignees.length > 0
       ? "Adicionar mais usuários"
-      : "Selecionar usuários"}
+      : "Selecione usuários"}
   </div>
 
   {isUserDropdownOpen && (
@@ -529,7 +535,7 @@ tags: tags.filter(tag =>
                 const updated = formData.assignees?.filter(id => id !== user.id)
                 setFormData({ ...formData, assignees: updated })
               }}
-              className="hover:text-red-500"
+              className="hover:text-red-500 cursor-pointer"
             >
               ✕
             </button>
@@ -552,14 +558,14 @@ tags: tags.filter(tag =>
                 <>
                   <button
                     onClick={handleUpdate}
-                    className="bg-blue-600 text-white px-4 py-2 rounded"
+                    className="bg-blue-600 text-white px-4 py-2 rounded cursor-pointer"
                   >
                     Salvar
                   </button>
 
                   <button
                     onClick={() => setIsEditing(false)}
-                    className="bg-gray-300 px-4 py-2 rounded"
+                    className="bg-gray-300 px-4 py-2 rounded cursor-pointer"
                   >
                     Cancelar
                   </button>
@@ -568,14 +574,14 @@ tags: tags.filter(tag =>
                 <>
                   <button
                     onClick={handleStartEdit}
-                    className="bg-yellow-500 text-white px-4 py-2 rounded"
+                    className="bg-yellow-500 text-white px-4 py-2 rounded cursor-pointer"
                   >
                     Editar
                   </button>
 
                   <button
                     onClick={() => setShowDeleteModal(true)}
-                    className="bg-red-600 text-white px-4 py-2 rounded"
+                    className="bg-red-600 text-white px-4 py-2 rounded cursor-pointer"
                   >
                     Deletar
                   </button>
@@ -611,7 +617,7 @@ tags: tags.filter(tag =>
         <button
           onClick={() => setShowDeleteModal(false)}
           disabled={isDeleting}
-          className="px-4 py-2 text-sm text-slate-600 hover:text-slate-900 disabled:opacity-50"
+          className="px-4 py-2 text-sm text-slate-600 hover:text-slate-900 disabled:opacity-50 cursor-pointer"
         >
           Cancelar
         </button>
@@ -619,7 +625,7 @@ tags: tags.filter(tag =>
         <button
           onClick={confirmDelete}
           disabled={isDeleting}
-          className="bg-red-600 text-white px-4 py-2 rounded"
+          className="bg-red-600 text-white px-4 py-2 rounded cursor-pointer"
         >
           {isDeleting ? "Deletando..." : "Deletar"}
         </button>
