@@ -1,60 +1,61 @@
 export type LoginPayload = {
-  email: string;
-  password: string;
-};
+  email: string
+  password: string
+}
 
 export type RegisterPayload = {
-  name: string;
-  email: string;
-  password: string;
-  password_confirmation: string;
-};
+  name: string
+  email: string
+  password: string
+  password_confirmation: string
+}
 
 export interface AuthResponse {
-  token?: string;
-  access_token?: string;
-  message?: string;
+  token?: string
+  access_token?: string
+  message?: string
 }
 
 // Kanban System Types
-export type TaskStatus = "pendente" | "em_progresso" | "revisao" | "concluida";
+export type TaskStatus = 'pendente' | 'em_progresso' | 'revisao' | 'concluida'
 
-export type TaskPriority = "baixa" | "media" | "alta" | "urgente";
+export type TaskPriority = 'baixa' | 'media' | 'alta' | 'urgente'
 
 export interface User {
-  id: number;
-  name: string;
-  email: string;
-  avatar?: string;
-  createdAt?: string;
-  updatedAt?: string;
-  created_at?: string;
-  updated_at?: string;
+  id: number
+  name: string
+  email: string
+  avatar?: string
+  createdAt?: string
+  updatedAt?: string
+  created_at?: string
+  updated_at?: string
 }
 
 export interface Project {
-  id: number;
-  name: string;
-  description?: string;
-  ownerId?: number;
-  owner_id?: number;
-  owner?: User;
-  createdAt?: string;
-  updatedAt?: string;
-  created_at?: string;
-  updated_at?: string;
+  id: number
+  name: string
+  description?: string
+  ownerId?: number
+  owner_id?: number
+  owner?: User
+  tasks_count: number
+  createdAt?: string
+  updatedAt?: string
+  created_at?: string
+  updated_at?: string
 }
 
 export interface Tag {
-  id: number;
-  name: string;
-  color?: string;
-  projectId?: number;
-  project_id?: number;
-  createdAt?: string;
-  updatedAt?: string;
-  created_at?: string;
-  updated_at?: string;
+  id: number
+  name: string
+  color?: string
+  projectId?: number
+  project_id?: number
+  createdAt?: string
+  updatedAt?: string
+  created_at?: string
+  updated_at?: string
 }
 
 export interface Task {
@@ -77,16 +78,16 @@ export interface Task {
 
 // API Response types
 export interface ApiResponse<T> {
-  data: T;
-  message?: string;
+  data: T
+  message?: string
 }
 
 export interface PaginatedResponse<T> {
-  data: T[];
-  currentPage: number;
-  lastPage: number;
-  perPage: number;
-  total: number;
+  data: T[]
+  currentPage: number
+  lastPage: number
+  perPage: number
+  total: number
 }
 
 // Form types
@@ -103,29 +104,29 @@ export interface CreateTaskPayload {
 }
 
 export interface UpdateTaskPayload extends Partial<CreateTaskPayload> {
-  id: number;
+  id: number
 }
 
 export interface CreateProjectPayload {
-  name: string;
-  description?: string;
+  name: string
+  description?: string
 }
 
 export interface CreateTagPayload {
-  name: string;
-  color?: string;
-  project_id?: number;
-  projectId?: number;
+  name: string
+  color?: string
+  project_id?: number
+  projectId?: number
 }
 
 export interface Comment {
-  id: number;
-  userId?: number;
-  user_id?: number;
-  user?: User;
-  message: string;
-  createdAt?: string;
-  updatedAt?: string;
-  created_at?: string;
-  updated_at?: string;
+  id: number
+  userId?: number
+  user_id?: number
+  user?: User
+  message: string
+  createdAt?: string
+  updatedAt?: string
+  created_at?: string
+  updated_at?: string
 }

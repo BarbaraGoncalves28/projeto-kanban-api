@@ -6,7 +6,7 @@ const uiToApiStatusCandidates = {
   pendente: ['pendente', 'a_fazer', 'todo'],
   em_progresso: ['em_progresso', 'em_andamento', 'fazendo', 'doing'],
   revisao: ['revisao', 'em_revisao', 'review'],
-  concluida: ['concluido', 'concluida', 'done'],
+  concluida: ['concluida', 'done'],
 } as const
 
 function getPrimaryApiStatus(status: Task['status']) {
@@ -194,7 +194,11 @@ export const taskService = {
     return normalizeTaskFromApi(response.data.data ?? response.data)
   },
 
-  async deleteTask(id: number, projectId: number, token?: string): Promise<void> {
+  async deleteTask(
+    id: number,
+    projectId: number,
+    token?: string,
+  ): Promise<void> {
     const client = createApiClient(token)
     await client.delete(`/projects/${projectId}/tasks/${id}`)
   },
