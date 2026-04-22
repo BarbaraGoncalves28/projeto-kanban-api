@@ -301,28 +301,9 @@ tags: tags.filter(tag =>
                   Project
                 </span>
 
-                {isEditing ? (
-                  <select
-                    className="border p-2 w-full"
-                    value={formData.project_id ?? ''}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        project_id: Number(e.target.value),
-                      })
-                    }
-                  >
-                    {projects.map((project) => (
-                      <option key={project.id} value={project.id}>
-                        {project.name}
-                      </option>
-                    ))}
-                  </select>
-                ) : (
                   <p className="text-slate-900">
                     {resolvedProjectName ?? projectName}
                   </p>
-                )}
               </div>
               <div>
                 <span className="text-sm font-medium text-slate-500">
