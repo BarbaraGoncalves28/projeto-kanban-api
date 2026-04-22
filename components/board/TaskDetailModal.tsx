@@ -565,7 +565,7 @@ tags: tags.filter(tag =>
 
                   <button
                     onClick={() => setIsEditing(false)}
-                    className="bg-gray-300 px-4 py-2 rounded cursor-pointer"
+                    className="bg-red-600 text-white px-4 py-2 rounded cursor-pointer"
                   >
                     Cancelar
                   </button>
@@ -574,7 +574,7 @@ tags: tags.filter(tag =>
                 <>
                   <button
                     onClick={handleStartEdit}
-                    className="bg-yellow-500 text-white px-4 py-2 rounded cursor-pointer"
+                    className="bg-blue-500 text-white px-4 py-2 rounded cursor-pointer"
                   >
                     Editar
                   </button>
