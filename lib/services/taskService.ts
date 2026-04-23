@@ -181,7 +181,7 @@ export const taskService = {
   async updateTask(payload: UpdateTaskPayload, token?: string): Promise<Task> {
     const client = createApiClient(token)
     const { id, ...updateData } = payload
-    const projectId = getTaskProjectId(updateData)
+    const projectId = getTaskProjectId(updateData as CreateTaskPayload)
 
     if (!projectId) {
       throw new Error('Project is required to update a task')

@@ -8,6 +8,7 @@ type AuthPageShellProps = {
   actionLabel: string;
   actionHref: string;
   children: ReactNode;
+  className?: string;
 };
 
 export function AuthPageShell({ title, description, actionLabel, actionHref, children }: AuthPageShellProps) {

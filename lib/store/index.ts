@@ -173,7 +173,7 @@ export const useStore = create<AppState>()(
 
           const fullTasks = tasks.map((task) => {
             const resolvedProjectId =
-              task.project_id ?? task.projectId ?? task.project?.id ?? projectId
+              task.project_id ?? task.project?.id ?? projectId
 
             return {
               ...task,
@@ -200,7 +200,7 @@ export const useStore = create<AppState>()(
         try {
           const { taskService } = await import('@/lib/services')
           const task = get().tasks.find((item) => item.id === taskId)
-          const projectId = projectIdArg ?? task?.project_id ?? task?.projectId
+          const projectId = projectIdArg ?? task?.project_id 
 
           if (!projectId) {
             throw new Error('Project is required to update task status')
@@ -216,7 +216,7 @@ export const useStore = create<AppState>()(
         } catch (error: unknown) {
           // Revert optimistic update on error
           const task = get().tasks.find((item) => item.id === taskId)
-          const projectId = projectIdArg ?? task?.project_id ?? task?.projectId
+          const projectId = projectIdArg ?? task?.project_id 
           await get().fetchTasks(projectId)
           set({
             tasksError: getErrorMessage(

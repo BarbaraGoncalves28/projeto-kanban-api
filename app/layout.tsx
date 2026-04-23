@@ -14,8 +14,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Kanbam - Modern Kanban Board",
-  description: "A modern, responsive Kanban board application built with Next.js and TypeScript.",
+  title: "Kanban - Gerencie suas tarefas",
+  description: "Um aplicativo de quadro Kanban moderno e responsivo, desenvolvido com Next.js e TypeScript.",
+  icons: {
+    icon: '/favicon.png',
+  },
 };
 
 export default function RootLayout({
