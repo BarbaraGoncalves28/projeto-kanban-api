@@ -26,7 +26,7 @@ const columns: { id: TaskStatus; title: string }[] = [
 
 export function KanbanBoard() {
   const searchParams = useSearchParams()
-  const { tasks, tasksLoading, tasksError, fetchTasks, updateTaskStatus } =
+  const { tasks, projects, tasksLoading, tasksError, fetchTasks, updateTaskStatus } =
     useStore()
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
@@ -38,6 +38,8 @@ export function KanbanBoard() {
       ? parsedProjectId
       : undefined
   const hasSelectedProject = selectedProjectId !== undefined
+
+  const project = projects.find(p => p.id === selectedProjectId)
 
   useEffect(() => {
     if (!hasSelectedProject) {
@@ -154,7 +156,7 @@ export function KanbanBoard() {
         <div>
           <h2 className="text-2xl font-bold">Tarefas</h2>
           <p className={`mt-1 ${mutedText}`}>
-            {tasks.length} total tarefas
+            {project?.tasks_count ?? tasks.length} total de tarefas
           </p>
         </div>
         <Button className='cursor-pointer' onClick={() => setIsCreateModalOpen(true)}>

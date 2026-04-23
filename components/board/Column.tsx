@@ -61,7 +61,8 @@ export function Column({ id, title, tasks, onTaskClick }: ColumnProps) {
         {tasks.length === 0 && (
           <div className="flex flex-1 items-center justify-center rounded-2xl border-2 border-dashed border-slate-300/70 p-4 dark:border-slate-700">
             <p className={cn("text-center text-sm", mutedText)}>
-              No tasks in {title.toLowerCase()}
+              Nenhuma tarefa em{" "}
+  "{title.charAt(0).toUpperCase() + title.slice(1).toLowerCase()}"
             </p>
           </div>
         )}
