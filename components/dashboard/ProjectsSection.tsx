@@ -7,15 +7,15 @@ import { ProjectCard } from "@/components/ui/ProjectCard";
 import { Button } from "@/components/ui/Button";
 import { SkeletonCard } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { CheckCircle2, FolderPlus, RefreshCw } from "lucide-react";
+import { FolderPlus, RefreshCw } from "lucide-react";
 import type { Project } from "@/lib/types";
 import { projectService } from "@/lib/services";
 import { cardSurface, modalOverlay, modalPanel, mutedText } from "@/lib/design";
+import { toast } from "sonner";
 
 export function ProjectsSection() {
   const { projects, projectsLoading, projectsError, fetchProjects } = useStore();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
   const [projectToEdit, setProjectToEdit] = useState<Project | null>(null);
@@ -23,7 +23,6 @@ export function ProjectsSection() {
   function closeModal() {
     setIsCreateModalOpen(false);
     setProjectToEdit(null);
-    setSuccessMessage(null);
   }
 
   const handleDeleteProject = (project: Project) => {
@@ -39,10 +38,13 @@ const confirmDeleteProject = async () => {
     await projectService.deleteProject(projectToDelete.id);
     await fetchProjects();
 
-    setSuccessMessage(`Projeto "${projectToDelete.name}" deletado com sucesso.`);
+    toast.success(`Projeto "${projectToDelete.name}" deletado com sucesso!`);
+
     setProjectToDelete(null);
   } catch (error) {
     console.error("Erro ao deletar projeto:", error);
+
+    toast.error("Não foi possível deletar o projeto.");
   } finally {
     setDeletingId(null);
   }
@@ -68,24 +70,12 @@ useEffect(() => {
     fetchProjects();
   }, [fetchProjects]);
 
-  useEffect(() => {
-    if (!successMessage) {
-      return;
-    }
-
-    const timeout = window.setTimeout(() => {
-      setSuccessMessage(null);
-    }, 4000);
-
-    return () => clearTimeout(timeout);
-  }, [successMessage]);
 
   function handleCreateProject() {
     setIsCreateModalOpen(true);
   }
 
-  function handleProjectCreated(project: Project) {
-    setSuccessMessage(`Projeto "${project.name}" salvo com sucesso.`);
+  function handleProjectCreated() {
     closeModal();
   }
 
@@ -158,13 +148,6 @@ useEffect(() => {
             Criar projeto
           </Button>
         </div>
-
-        {successMessage ? (
-          <div className="mt-6 flex items-center gap-3 rounded-2xl border border-emerald-400/35 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-500/25 dark:bg-emerald-500/10 dark:text-emerald-300">
-            <CheckCircle2 className="h-4 w-4" />
-            <span>{successMessage}</span>
-          </div>
-        ) : null}
 
         {projects.length === 0 ? (
           <div className="mt-6">

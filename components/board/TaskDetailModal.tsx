@@ -5,6 +5,7 @@ import { useStore } from '@/lib/store'
 import type { Task, User, Tag } from '@/lib/types'
 import { useEffect, useState } from 'react'
 import { inputBase, modalOverlay, modalPanel, mutedText } from '@/lib/design'
+import { toast } from "sonner";
 
 type TaskDetailModalProps = {
   task: Task | null
@@ -181,10 +182,15 @@ export function TaskDetailModal({
       ),
     })
 
+    toast.success(
+  `Tarefa "${payload.title.charAt(0).toUpperCase() + payload.title.slice(1)}" atualizada com sucesso!`
+);
+
     setIsEditing(false)
     onClose()
   } catch (err: any) {
     console.error('Erro ao atualizar tarefa:', err)
+    toast.error("Não foi possível atualizar a tarefa.");
     console.error('Resposta do backend:', err?.response?.data)
   }
 }
@@ -199,10 +205,15 @@ export function TaskDetailModal({
     await taskService.deleteTask(task.id, task.project_id)
     useStore.getState().removeTask(task.id)
 
+    toast.success(
+  `Tarefa "${task.title.charAt(0).toUpperCase() + task.title.slice(1)}" deletada com sucesso!`
+);
+
     setShowDeleteModal(false)
     onClose()
   } catch (err) {
     console.error('Erro ao deletar tarefa:', err)
+    toast.error("Não foi possível deletar a tarefa.");
   } finally {
     setIsDeleting(false)
   }
@@ -625,7 +636,7 @@ export function TaskDetailModal({
       <p className={`mb-6 text-sm ${mutedText}`}>
         Tem certeza que deseja deletar{" "}
         <span className="font-medium text-slate-950 dark:text-slate-100">
-          {task.title}
+          {task.title.charAt(0).toUpperCase() + task.title.slice(1)}
         </span>
         ?
       </p>

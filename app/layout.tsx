@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./tailwind.css";
+import { Toaster } from "sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,6 +30,7 @@ export default function RootLayout({
     >
       <body className="min-h-full bg-slate-50 font-sans text-slate-950 selection:bg-sky-200 selection:text-sky-950">
         {children}
+        <Toaster richColors position="top-right"/>
       </body>
     </html>
   );

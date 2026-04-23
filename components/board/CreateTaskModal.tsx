@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/Button";
 import { TextField } from "@/components/ui/TextField";
 import type { Tag, User } from "@/lib/types";
 import { inputBase, modalOverlay, modalPanel, mutedText } from "@/lib/design";
+import { toast } from "sonner";
 
 const createTaskSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -93,11 +94,15 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated, projectId }: C
         assignees: data.assignedUsers,
         tags: data.tags,
       })
+      toast.success(`Tarefa "${data.title.charAt(0).toUpperCase() + data.title.slice(1)}" criada com sucesso!`);
+
       reset();
       onTaskCreated();
       onClose();
     } catch (error) {
       console.error("Failed to create task:", error);
+
+      toast.error("Não foi possível criar a tarefa.");
     } finally {
       setIsLoading(false);
     }

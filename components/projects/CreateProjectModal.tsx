@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CheckCircle2, FolderPlus, X } from "lucide-react";
+import { FolderPlus, X } from "lucide-react";
 import { ProjectForm } from "@/components/projects/ProjectForm";
 import { useStore } from "@/lib/store";
 import type { CreateProjectPayload, Project } from "@/lib/types";
 import { modalOverlay, modalPanel, mutedText } from "@/lib/design";
+import { toast } from "sonner";
 
 type CreateProjectModalProps = {
   isOpen: boolean;
@@ -14,7 +15,7 @@ type CreateProjectModalProps = {
   projectToEdit?: Project | null;
 };
 
-function getErrorMessage(error: unknown) {
+function getErrorMessage(error: unknown, isEditing: boolean) {
   if (typeof error === "object" && error !== null) {
     const maybeMessage = "message" in error ? error.message : undefined;
     if (typeof maybeMessage === "string" && maybeMessage.trim()) {
@@ -30,20 +31,20 @@ function getErrorMessage(error: unknown) {
     }
   }
 
-  return "Nao foi possivel criar o projeto. Tente novamente.";
+  return isEditing
+    ? "Nao foi possivel atualizar o projeto."
+    : "Nao foi possivel criar o projeto.";
 }
 
 export function CreateProjectModal({ isOpen, onClose, onSuccess, projectToEdit, }: CreateProjectModalProps) {
   const { createProject, updateProject } = useStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const isEditing = !!projectToEdit;
 
   useEffect(() => {
     if (!isOpen) {
       setErrorMessage(null);
-      setSuccessMessage(null);
       setIsSubmitting(false);
     }
   }, [isOpen]);
@@ -76,20 +77,18 @@ async function handleSubmit(values: CreateProjectPayload) {
 
     if (isEditing) {
       project = await updateProject(projectToEdit!.id, values);
+      toast.success("Projeto atualizado com sucesso!");
     } else {
       project = await createProject(values);
+      toast.success("Projeto criado com sucesso!");
     }
 
     onSuccess?.(project);
-    setSuccessMessage(
-      isEditing
-        ? "Projeto atualizado com sucesso!"
-        : "Projeto criado com sucesso!"
-    );
-
-    setTimeout(() => onClose(), 300);
+    onClose();
   } catch (error) {
-    setErrorMessage(getErrorMessage(error));
+    const message = getErrorMessage(error, isEditing);
+    setErrorMessage(message);
+    toast.error(message);
   } finally {
     setIsSubmitting(false);
   }
@@ -127,13 +126,6 @@ async function handleSubmit(values: CreateProjectPayload) {
         </div>
 
         <div className="px-6 py-6 sm:px-8">
-          {successMessage ? (
-            <div className="mb-5 flex items-center gap-3 rounded-xl border border-emerald-400/35 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-500/25 dark:bg-emerald-500/10 dark:text-emerald-300">
-              <CheckCircle2 className="h-4 w-4" />
-              <span>{successMessage}</span>
-            </div>
-          ) : null}
-
           <ProjectForm
           initialValues={
           projectToEdit
