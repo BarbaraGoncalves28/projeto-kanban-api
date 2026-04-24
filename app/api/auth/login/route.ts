@@ -17,11 +17,16 @@ function extractToken(data: AuthResponseWithData) {
   )
 }
 
-function getErrorMessage(error: { message: string }) {
-  return (
-    error.message ??
-    'Algo deu errado durante o login. Por favor, tente novamente.'
-  )
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message
+  }
+
+  if (typeof error === "object" && error !== null && "message" in error) {
+    return String((error as { message?: unknown }).message)
+  }
+
+  return 'Algo deu errado durante o login. Por favor, tente novamente.'
 }
 
 export async function POST(request: Request) {
@@ -58,7 +63,7 @@ export async function POST(request: Request) {
     )
 
     return nextResponse
-  } catch (error) {
+  } catch (error: unknown) {
     const message = getErrorMessage(error)
     return NextResponse.json({ message }, { status: 422 })
   }
