@@ -73,16 +73,16 @@ export function TaskCard({ task, onViewDetails }: TaskCardProps) {
           </span>
         </div>
 
-        {task.dueDate && (
+        {task.due_date && (
           <div className={cn("mb-2 flex items-center gap-1 text-xs", mutedText)}>
             <Calendar className="h-3 w-3" />
-            <span>Due {new Date(task.dueDate).toLocaleDateString()}</span>
+            <span>Due {new Date(task.due_date).toLocaleDateString()}</span>
           </div>
         )}
 
-        {task.taskTags && task.taskTags.length > 0 && (
+        {task.tags && task.tags.length > 0 && (
           <div className="flex flex-wrap gap-1 mb-2">
-            {task.taskTags.slice(0, 3).map((tag) => (
+            {task.tags.slice(0, 3).map((tag) => (
               <span
                 key={tag.id}
                 className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-300"
@@ -95,9 +95,9 @@ export function TaskCard({ task, onViewDetails }: TaskCardProps) {
                 {tag.name}
               </span>
             ))}
-            {task.taskTags.length > 3 && (
+            {task.tags.length > 3 && (
               <span className={cn("text-xs", mutedText)}>
-                +{task.taskTags.length - 3} mais
+                +{task.tags.length - 3} mais
               </span>
             )}
           </div>

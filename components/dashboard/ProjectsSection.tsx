@@ -152,11 +152,11 @@ useEffect(() => {
         {projects.length === 0 ? (
           <div className="mt-6">
             <EmptyState
-              title="No projects yet"
-              description="Create your first project to start organizing your tasks and collaborating with your team."
+              title="Ainda não há projetos"
+              description="Crie seu primeiro projeto para começar a organizar suas tarefas e colaborar com sua equipe."
               icon={<FolderPlus className="h-6 w-6" />}
               action={
-                <Button onClick={handleCreateProject}>
+                <Button className="cursor-pointer" onClick={handleCreateProject}>
                   Crie seu primeiro projeto
                 </Button>
               }

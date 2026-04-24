@@ -188,6 +188,7 @@ export function TaskDetailModal({
 
     setIsEditing(false)
     onClose()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (err: any) {
     console.error('Erro ao atualizar tarefa:', err)
     toast.error("Não foi possível atualizar a tarefa.");
