@@ -110,7 +110,7 @@ export function ProjectCard({
             {project.description
               ? project.description.charAt(0).toUpperCase() +
                 project.description.slice(1)
-              : 'No description provided.'}
+              : 'Nenhuma descrição informada.'}
           </p>
         </div>
       </div>
@@ -122,7 +122,9 @@ export function ProjectCard({
           <Calendar className="h-3 w-3" />
           <span>
             Criado{' '}
-            {createdAt ? new Date(createdAt).toLocaleDateString() : 'recently'}
+            {createdAt
+              ? new Date(createdAt).toLocaleDateString()
+              : 'recentemente'}
           </span>
         </div>
         <div className="flex items-center gap-1">

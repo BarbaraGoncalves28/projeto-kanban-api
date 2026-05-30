@@ -1,6 +1,7 @@
 'use client'
 
 import { Button } from '@/components/ui/Button'
+import { cardSurface, mutedText } from '@/lib/design'
 import { useStore } from '@/lib/store'
 import type { Task, TaskStatus } from '@/lib/types'
 import {
@@ -15,7 +16,6 @@ import { useEffect, useState } from 'react'
 import { Column } from './Column'
 import { CreateTaskModal } from './CreateTaskModal'
 import { TaskDetailModal } from './TaskDetailModal'
-import { cardSurface, mutedText } from '@/lib/design'
 
 const columns: { id: TaskStatus; title: string }[] = [
   { id: 'pendente', title: 'Pendente' },
@@ -26,8 +26,14 @@ const columns: { id: TaskStatus; title: string }[] = [
 
 export function KanbanBoard() {
   const searchParams = useSearchParams()
-  const { tasks, projects, tasksLoading, tasksError, fetchTasks, updateTaskStatus } =
-    useStore()
+  const {
+    tasks,
+    projects,
+    tasksLoading,
+    tasksError,
+    fetchTasks,
+    updateTaskStatus,
+  } = useStore()
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
@@ -39,7 +45,7 @@ export function KanbanBoard() {
       : undefined
   const hasSelectedProject = selectedProjectId !== undefined
 
-  const project = projects.find(p => p.id === selectedProjectId)
+  const project = projects.find((p) => p.id === selectedProjectId)
 
   useEffect(() => {
     if (!hasSelectedProject) {
@@ -122,7 +128,7 @@ export function KanbanBoard() {
           <Button
             onClick={() => hasSelectedProject && fetchTasks(selectedProjectId)}
           >
-            Try Again
+            Tentar novamente
           </Button>
         </div>
       </div>
@@ -159,7 +165,10 @@ export function KanbanBoard() {
             {project?.tasks_count ?? tasks.length} total de tarefas
           </p>
         </div>
-        <Button className='cursor-pointer' onClick={() => setIsCreateModalOpen(true)}>
+        <Button
+          className="cursor-pointer"
+          onClick={() => setIsCreateModalOpen(true)}
+        >
           <Plus className="mr-2 h-4 w-4" />
           Criar tarefa
         </Button>
@@ -190,7 +199,7 @@ export function KanbanBoard() {
         onClose={handleCloseTaskDetail}
         currentUser={{
           id: 1,
-          name: 'Current User',
+          name: 'Usuário atual',
           email: 'user@example.com',
           createdAt: '',
           updatedAt: '',

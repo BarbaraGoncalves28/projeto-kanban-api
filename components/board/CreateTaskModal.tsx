@@ -1,63 +1,70 @@
-"use client";
+'use client'
 
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { projectService, tagService, userService } from "@/lib/services";
-import { useStore } from "@/lib/store";
-import { Button } from "@/components/ui/Button";
-import { TextField } from "@/components/ui/TextField";
-import type { Tag, User } from "@/lib/types";
-import { inputBase, modalOverlay, modalPanel, mutedText } from "@/lib/design";
-import { toast } from "sonner";
+import { Button } from '@/components/ui/Button'
+import { TextField } from '@/components/ui/TextField'
+import { inputBase, modalOverlay, modalPanel, mutedText } from '@/lib/design'
+import { projectService, tagService, userService } from '@/lib/services'
+import { useStore } from '@/lib/store'
+import type { Tag, User } from '@/lib/types'
+import { extractBackendFieldErrors, extractBackendMessage } from '@/lib/utils'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
+import { z } from 'zod'
 
 const createTaskSchema = z.object({
-  title: z.string().min(1, "Title is required"),
+  title: z.string().min(1, 'O título é obrigatório'),
   description: z.string().optional(),
-  priority: z.enum(["baixa", "media", "alta", "urgente"]),
+  priority: z.enum(['baixa', 'media', 'alta', 'urgente']),
   dueDate: z.string().optional(),
   createdAt: z.string().optional(),
   estimatedMinutes: z.number().optional(),
   tags: z.array(z.number()).default([]),
   assignedUsers: z.array(z.number()).default([]),
-});
+})
 
-type CreateTaskForm = z.infer<typeof createTaskSchema>;
+type CreateTaskForm = z.infer<typeof createTaskSchema>
 
 type CreateTaskModalProps = {
-  isOpen: boolean;
-  onClose: () => void;
-  onTaskCreated: () => void;
+  isOpen: boolean
+  onClose: () => void
+  onTaskCreated: () => void
   projectId: number
-};
+}
 
-export function CreateTaskModal({ isOpen, onClose, onTaskCreated, projectId }: CreateTaskModalProps) {
-  const { createTask } = useStore();
-  const [tags, setTags] = useState<Tag[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingData, setIsLoadingData] = useState(true);
-  const [users, setUsers] = useState<User[]>([]);
-  const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
+export function CreateTaskModal({
+  isOpen,
+  onClose,
+  onTaskCreated,
+  projectId,
+}: CreateTaskModalProps) {
+  const { createTask } = useStore()
+  const [tags, setTags] = useState<Tag[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [isLoadingData, setIsLoadingData] = useState(true)
+  const [users, setUsers] = useState<User[]>([])
+  const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false)
 
   const {
     register,
     handleSubmit,
     setValue,
+    setError,
     watch,
     reset,
     formState: { errors },
   } = useForm<CreateTaskForm>({
     resolver: zodResolver(createTaskSchema),
     defaultValues: {
-      priority: "media",
+      priority: 'media',
       tags: [],
       assignedUsers: [],
     },
-  });
+  })
 
-  const selectedTags = watch("tags");
-  const selectedUsers = watch("assignedUsers") || [];
+  const selectedTags = watch('tags')
+  const selectedUsers = watch('assignedUsers') || []
 
   useEffect(() => {
     if (isOpen) {
@@ -67,21 +74,21 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated, projectId }: C
             projectService.getProjects(),
             tagService.getTags(),
             userService.getUsers(),
-          ]);
-          setUsers(usersData);
-          setTags(tagsData);
+          ])
+          setUsers(usersData)
+          setTags(tagsData)
         } catch (error) {
-          console.error("Failed to fetch data:", error);
+          console.error('Failed to fetch data:', error)
         } finally {
-          setIsLoadingData(false);
+          setIsLoadingData(false)
         }
-      };
-      fetchData();
+      }
+      fetchData()
     }
-  }, [isOpen]);
+  }, [isOpen])
 
   const onSubmit = async (data: CreateTaskForm) => {
-    setIsLoading(true);
+    setIsLoading(true)
     try {
       await createTask({
         title: data.title,
@@ -94,29 +101,38 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated, projectId }: C
         assignees: data.assignedUsers,
         tags: data.tags,
       })
-      toast.success(`Tarefa "${data.title.charAt(0).toUpperCase() + data.title.slice(1)}" criada com sucesso!`);
+      toast.success(
+        `Tarefa "${data.title.charAt(0).toUpperCase() + data.title.slice(1)}" criada com sucesso!`,
+      )
 
-      reset();
-      onTaskCreated();
-      onClose();
+      reset()
+      onTaskCreated()
+      onClose()
     } catch (error) {
-      console.error("Failed to create task:", error);
+      console.error('Failed to create task:', error)
 
-      toast.error("Não foi possível criar a tarefa.");
+      const backendErrors = extractBackendFieldErrors(error)
+      if (backendErrors.title) {
+        setError('title', { type: 'server', message: backendErrors.title })
+      }
+
+      toast.error(
+        extractBackendMessage(error) ?? 'Não foi possível criar a tarefa.',
+      )
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   const handleTagToggle = (tagId: number) => {
-    const currentTags = selectedTags || [];
+    const currentTags = selectedTags || []
     const newTags = currentTags.includes(tagId)
-      ? currentTags.filter(id => id !== tagId)
-      : [...currentTags, tagId];
-    setValue("tags", newTags);
-  };
+      ? currentTags.filter((id) => id !== tagId)
+      : [...currentTags, tagId]
+    setValue('tags', newTags)
+  }
 
-  if (!isOpen) return null;
+  if (!isOpen) return null
 
   return (
     <div className={modalOverlay}>
@@ -144,7 +160,7 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated, projectId }: C
                     Prioridade:
                   </label>
                   <select
-                    {...register("priority")}
+                    {...register('priority')}
                     className={`${inputBase} cursor-pointer`}
                   >
                     <option value="baixa">Baixa</option>
@@ -157,7 +173,7 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated, projectId }: C
 
               <TextField
                 label="Título:"
-                {...register("title")}
+                {...register('title')}
                 error={errors.title?.message}
               />
 
@@ -166,25 +182,25 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated, projectId }: C
                   Descrição:
                 </label>
                 <textarea
-                  {...register("description")}
+                  {...register('description')}
                   rows={3}
                   className={`${inputBase} resize-none`}
-                  placeholder="Task description..."
+                  placeholder="Descrição da tarefa..."
                 />
               </div>
 
               <TextField
-              className="cursor-pointer"
+                className="cursor-pointer"
                 label="Data de criação:"
                 type="date"
-                {...register("dueDate")}
+                {...register('dueDate')}
               />
 
-              <TextField 
+              <TextField
                 label="Duração (minutos):"
                 type="number"
-                {...register("estimatedMinutes", { valueAsNumber: true })}
-               />
+                {...register('estimatedMinutes', { valueAsNumber: true })}
+              />
 
               <div>
                 <label className="mb-3 block text-sm font-medium text-slate-700 dark:text-slate-200">
@@ -192,7 +208,10 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated, projectId }: C
                 </label>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                   {tags.map((tag) => (
-                    <label key={tag.id} className="flex cursor-pointer items-center space-x-2 rounded-2xl border border-slate-200/70 bg-slate-50/80 px-3 py-2 dark:border-slate-800 dark:bg-slate-950/50">
+                    <label
+                      key={tag.id}
+                      className="flex cursor-pointer items-center space-x-2 rounded-2xl border border-slate-200/70 bg-slate-50/80 px-3 py-2 dark:border-slate-800 dark:bg-slate-950/50"
+                    >
                       <input
                         type="checkbox"
                         checked={selectedTags?.includes(tag.id) || false}
@@ -202,8 +221,10 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated, projectId }: C
                       <span
                         className="text-sm px-2 py-1 rounded-full"
                         style={{
-                          backgroundColor: tag.color ? `${tag.color}20` : '#f1f5f9',
-                          color: tag.color || '#64748b'
+                          backgroundColor: tag.color
+                            ? `${tag.color}20`
+                            : '#f1f5f9',
+                          color: tag.color || '#64748b',
                         }}
                       >
                         {tag.name}
@@ -212,76 +233,80 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated, projectId }: C
                   ))}
                 </div>
               </div>
-<div className="relative">
-  <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
-    Usuários atribuídos
-  </label>
+              <div className="relative">
+                <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
+                  Usuários atribuídos
+                </label>
 
-  {/* Botão do select */}
-  <div
-    onClick={() => setIsUserDropdownOpen((prev) => !prev)}
-    className={`${inputBase} cursor-pointer`}
-  >
-    {selectedUsers.length > 0 ? "Adicione mais usuários" : "Selecione usuários"}
-  </div>
+                {/* Botão do select */}
+                <div
+                  onClick={() => setIsUserDropdownOpen((prev) => !prev)}
+                  className={`${inputBase} cursor-pointer`}
+                >
+                  {selectedUsers.length > 0
+                    ? 'Adicione mais usuários'
+                    : 'Selecione usuários'}
+                </div>
 
-  {/* Dropdown */}
-  {isUserDropdownOpen && (
-    <div className="absolute z-10 mt-2 max-h-48 w-full overflow-y-auto rounded-2xl border border-slate-200/80 bg-white/95 shadow-lg shadow-slate-900/10 dark:border-slate-700 dark:bg-slate-900/95 dark:shadow-black/30">
-      {users.map((user) => {
-        const isSelected = selectedUsers.includes(user.id);
+                {/* Dropdown */}
+                {isUserDropdownOpen && (
+                  <div className="absolute z-10 mt-2 max-h-48 w-full overflow-y-auto rounded-2xl border border-slate-200/80 bg-white/95 shadow-lg shadow-slate-900/10 dark:border-slate-700 dark:bg-slate-900/95 dark:shadow-black/30">
+                    {users.map((user) => {
+                      const isSelected = selectedUsers.includes(user.id)
 
-        return (
-          <div
-            key={user.id}
-            onClick={() => {
-              const updated = isSelected
-                ? selectedUsers.filter((id) => id !== user.id)
-                : [...selectedUsers, user.id];
+                      return (
+                        <div
+                          key={user.id}
+                          onClick={() => {
+                            const updated = isSelected
+                              ? selectedUsers.filter((id) => id !== user.id)
+                              : [...selectedUsers, user.id]
 
-              setValue("assignedUsers", updated);
+                            setValue('assignedUsers', updated)
 
-              setIsUserDropdownOpen(false);
-            }}
-            className={`cursor-pointer px-4 py-2 transition hover:bg-slate-100 dark:hover:bg-slate-800 ${
-              isSelected ? "bg-slate-100 font-medium dark:bg-slate-800" : ""
-            }`}
-          >
-            {user.name}
-          </div>
-        );
-      })}
-    </div>
-  )}
+                            setIsUserDropdownOpen(false)
+                          }}
+                          className={`cursor-pointer px-4 py-2 transition hover:bg-slate-100 dark:hover:bg-slate-800 ${
+                            isSelected
+                              ? 'bg-slate-100 font-medium dark:bg-slate-800'
+                              : ''
+                          }`}
+                        >
+                          {user.name}
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
 
-
-
-  {/* Selected Users */}
-{selectedUsers.length > 0 && (
-  <div className="flex flex-wrap gap-2 mt-3">
-    {users
-      .filter((u) => selectedUsers.includes(u.id))
-      .map((u) => (
-        <div
-          key={u.id}
-          className="flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-800 dark:bg-slate-800 dark:text-slate-200"
-        >
-          <span>{u.name}</span>
-          <button
-            type="button"
-            onClick={() => {
-              const updated = selectedUsers.filter((id) => id !== u.id);
-              setValue("assignedUsers", updated);
-            }}
-            className="text-slate-500 transition hover:text-rose-500 dark:text-slate-400"
-          >
-            ✕
-          </button>
-        </div>
-      ))}
-  </div>
-)}
-</div>
+                {/* Selected Users */}
+                {selectedUsers.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {users
+                      .filter((u) => selectedUsers.includes(u.id))
+                      .map((u) => (
+                        <div
+                          key={u.id}
+                          className="flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-800 dark:bg-slate-800 dark:text-slate-200"
+                        >
+                          <span>{u.name}</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updated = selectedUsers.filter(
+                                (id) => id !== u.id,
+                              )
+                              setValue('assignedUsers', updated)
+                            }}
+                            className="text-slate-500 transition hover:text-rose-500 dark:text-slate-400"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+                  </div>
+                )}
+              </div>
 
               <div className="flex justify-end gap-4 pt-4">
                 <button
@@ -291,7 +316,11 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated, projectId }: C
                 >
                   Cancelar
                 </button>
-                <Button className="cursor-pointer" type="submit" loading={isLoading}>
+                <Button
+                  className="cursor-pointer"
+                  type="submit"
+                  loading={isLoading}
+                >
                   Criar tarefa
                 </Button>
               </div>
@@ -300,5 +329,5 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated, projectId }: C
         </div>
       </div>
     </div>
-  );
+  )
 }

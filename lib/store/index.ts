@@ -104,7 +104,9 @@ export const useStore = create<AppState>()(
           set({ projects, projectsLoading: false })
         } catch (error: unknown) {
           const message =
-            error instanceof Error ? error.message : 'Failed to load projects'
+            error instanceof Error
+              ? error.message
+              : 'Não foi possível carregar os projetos'
           set({ projectsError: message, projectsLoading: false })
         }
       },
@@ -133,24 +135,24 @@ export const useStore = create<AppState>()(
           ],
         })),
       updateProject: async (id, updates) => {
-  try {
-    const { projectService } = await import('@/lib/services')
+        try {
+          const { projectService } = await import('@/lib/services')
 
-    // 🔥 chama API
-    const updatedProject = await projectService.updateProject(id, updates)
+          // 🔥 chama API
+          const updatedProject = await projectService.updateProject(id, updates)
 
-    // 🔥 atualiza estado local com resposta real do backend
-    set((state) => ({
-      projects: state.projects.map((p) =>
-        p.id === id ? updatedProject : p
-      ),
-    }))
+          // 🔥 atualiza estado local com resposta real do backend
+          set((state) => ({
+            projects: state.projects.map((p) =>
+              p.id === id ? updatedProject : p,
+            ),
+          }))
 
-    return updatedProject
-  } catch (error) {
-    throw error
-  }
-},
+          return updatedProject
+        } catch (error) {
+          throw error
+        }
+      },
       removeProject: (id) =>
         set((state) => ({
           projects: state.projects.filter((p) => p.id !== id),
@@ -188,7 +190,9 @@ export const useStore = create<AppState>()(
           set({ tasks: fullTasks, tasksLoading: false })
         } catch (error: unknown) {
           const message =
-            error instanceof Error ? error.message : 'Failed to load tasks'
+            error instanceof Error
+              ? error.message
+              : 'Não foi possível carregar as tarefas'
           set({ tasksError: message, tasksLoading: false })
         }
       },
@@ -200,10 +204,12 @@ export const useStore = create<AppState>()(
         try {
           const { taskService } = await import('@/lib/services')
           const task = get().tasks.find((item) => item.id === taskId)
-          const projectId = projectIdArg ?? task?.project_id 
+          const projectId = projectIdArg ?? task?.project_id
 
           if (!projectId) {
-            throw new Error('Project is required to update task status')
+            throw new Error(
+              'O projeto é obrigatório para atualizar o status da tarefa',
+            )
           }
 
           await taskService.updateTaskStatus(taskId, projectId, status)
@@ -216,12 +222,12 @@ export const useStore = create<AppState>()(
         } catch (error: unknown) {
           // Revert optimistic update on error
           const task = get().tasks.find((item) => item.id === taskId)
-          const projectId = projectIdArg ?? task?.project_id 
+          const projectId = projectIdArg ?? task?.project_id
           await get().fetchTasks(projectId)
           set({
             tasksError: getErrorMessage(
               error,
-              'Nao foi possivel atualizar o status da tarefa agora.',
+              'Não foi possível atualizar o status da tarefa agora.',
             ),
           })
         }

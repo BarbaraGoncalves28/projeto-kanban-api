@@ -168,7 +168,7 @@ export const taskService = {
     const projectId = getTaskProjectId(payload)
 
     if (!projectId) {
-      throw new Error('Project is required to create a task')
+      throw new Error('O projeto é obrigatório para criar uma tarefa')
     }
 
     const response = await client.post(
@@ -184,7 +184,7 @@ export const taskService = {
     const projectId = getTaskProjectId(updateData as CreateTaskPayload)
 
     if (!projectId) {
-      throw new Error('Project is required to update a task')
+      throw new Error('O projeto é obrigatório para atualizar uma tarefa')
     }
 
     const response = await client.put(

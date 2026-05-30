@@ -8,6 +8,8 @@ type AuthResponseWithData = AuthResponse & {
   data?: AuthResponse
 }
 
+type LaravelValidationErrors = Record<string, string[]>
+
 function extractToken(data: AuthResponseWithData) {
   return (
     data?.token ??
@@ -18,15 +20,31 @@ function extractToken(data: AuthResponseWithData) {
 }
 
 function getErrorMessage(error: unknown): string {
-  if (error instanceof Error) {
+  if (typeof error === 'object' && error !== null && 'message' in error) {
+    const message = (error as { message?: unknown }).message
+    if (typeof message === 'string' && message.trim()) {
+      return message
+    }
+  }
+
+  if (error instanceof Error && error.message.trim()) {
     return error.message
   }
 
-  if (typeof error === "object" && error !== null && "message" in error) {
-    return String((error as { message?: unknown }).message)
+  return 'Algo deu errado durante o login. Por favor, tente novamente.'
+}
+
+function getValidationErrors(
+  error: unknown,
+): LaravelValidationErrors | undefined {
+  if (typeof error === 'object' && error !== null && 'errors' in error) {
+    const errors = (error as { errors?: unknown }).errors
+    if (typeof errors === 'object' && errors !== null) {
+      return errors as LaravelValidationErrors
+    }
   }
 
-  return 'Algo deu errado durante o login. Por favor, tente novamente.'
+  return undefined
 }
 
 export async function POST(request: Request) {
@@ -34,8 +52,14 @@ export async function POST(request: Request) {
   const parseResult = loginSchema.safeParse(body)
 
   if (!parseResult.success) {
+    const fieldErrors = parseResult.error.flatten().fieldErrors
     return NextResponse.json(
-      { message: parseResult.error.flatten().formErrors.join(' ') },
+      {
+        message:
+          parseResult.error.flatten().formErrors.join(' ') ||
+          'Dados inválidos.',
+        errors: fieldErrors,
+      },
       { status: 400 },
     )
   }
@@ -46,13 +70,13 @@ export async function POST(request: Request) {
 
     if (!token) {
       return NextResponse.json(
-        { message: 'Authentication token was not returned.' },
+        { message: 'O token de autenticação não foi retornado.' },
         { status: 500 },
       )
     }
 
     const nextResponse = NextResponse.json({
-      message: 'Login successful',
+      message: 'Login realizado com sucesso',
       token,
     })
     const cookieConfig = buildAuthCookie(token)
@@ -65,6 +89,7 @@ export async function POST(request: Request) {
     return nextResponse
   } catch (error: unknown) {
     const message = getErrorMessage(error)
-    return NextResponse.json({ message }, { status: 422 })
+    const errors = getValidationErrors(error)
+    return NextResponse.json({ message, errors }, { status: 422 })
   }
 }
